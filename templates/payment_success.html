@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .success-container {
+            max-width: 700px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .success-icon {
+            font-size: 5rem;
+            color: #198754;
+            margin: 20px 0;
+        }
+        .btn-action {
+            border-radius: 30px;
+            padding: 10px 25px;
+            transition: all 0.3s ease;
+        }
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/mainpage">Trading Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mainpage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subscription/menu">Subscriptions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        Welcome, {{ user_name }}
+                    </span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="success-container">
+        <div class="card">
+            <div class="card-body p-5">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h2 class="mb-3">Payment Successful!</h2>
+                <p class="lead mb-4">Thank you for subscribing to our service.</p>
+                
+                <div class="alert alert-success mb-4">
+                    <p class="mb-1"><strong>Subscription Details:</strong></p>
+                    <p class="mb-1">Plan: {{ subscription.plan_name }}</p>
+                    <p class="mb-0">Valid Until: {{ subscription.expiry_date }}</p>
+                </div>
+                
+                <p class="mb-4">You now have full access to all premium features.</p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/mainpage" class="btn btn-primary btn-action">
+                        <i class="fas fa-home me-2"></i> Go to Dashboard
+                    </a>
+                    <a href="/subscription/history" class="btn btn-outline-secondary btn-action">
+                        <i class="fas fa-history me-2"></i> View History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

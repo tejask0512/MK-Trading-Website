@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription History - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .history-card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .subscription-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .subscription-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(5px);
+        }
+        .subscription-item.active {
+            border-left-color: #28a745;
+        }
+        .subscription-item.expired {
+            border-left-color: #dc3545;
+        }
+        .badge-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-expired {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .transaction-id {
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/mainpage">Trading Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mainpage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subscription/menu">Subscriptions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        Welcome, {{ user_name }}
+                    </span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1>Subscription History</h1>
+                <p class="lead">Review your subscription history and transaction details</p>
+            </div>
+        </div>
+
+        <div class="card history-card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Your Subscriptions</h5>
+            </div>
+            <div class="card-body">
+                {% if subscriptions and subscriptions|length > 0 %}
+                <div class="list-group list-group-flush">
+                    {% for sub in subscriptions %}
+                    <div class="list-group-item subscription-item {{ 'active' if sub.is_active else 'expired' }} p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-1">{{ sub.plan_name }}</h5>
+                                <p class="mb-1">
+                                    <span class="badge {{ 'badge-active' if sub.is_active else 'badge-expired' }} p-2">
+                                        {% if sub.is_active %}
+                                        <i class="fas fa-check-circle me-1"></i> Active
+                                        {% else %}
+                                        <i class="fas fa-times-circle me-1"></i> Expired
+                                        {% endif %}
+                                    </span>
+                                </p>
+                                <small class="text-muted">
+                                    From {{ sub.start_date }} to {{ sub.expiry_date }}
+                                </small>
+                                <div class="mt-2">
+                                    <span class="d-block transaction-id">
+                                        <i class="fas fa-receipt me-2"></i> Transaction ID: {{ sub.transaction_id }}
+                                    </span>
+                                    <small class="text-muted">
+                                        <i class="fas fa-credit-card me-2"></i> Payment Method: {{ sub.payment_method }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% if not sub.is_active %}
+                            <div>
+                                <a href="/subscription/plans" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-sync-alt me-1"></i> Renew
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h3>No Subscription History</h3>
+                    <p class="text-muted mb-4">You haven't subscribed to any plans yet. Subscribe now to access premium features.</p>
+                    <a href="/subscription/plans" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-2"></i> Get a Subscription
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="/subscription/menu" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Subscription Menu
+            </a>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2023 Trading Platform. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/faq" class="text-white me-3">FAQ</a>
+                    <a href="/policy" class="text-white">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

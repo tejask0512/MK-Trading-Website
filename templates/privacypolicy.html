@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Privacy Policy - MK Trading Academy</title>
+  <meta content="Privacy Policy for MK Trading Academy - Learn about how we protect your data" name="description">
+  <meta content="Trading, Academy, Privacy, Policy, Stock Market, Data Protection" name="keywords">
+
+  <!-- Favicons -->
+  <link href="assets/img/logomk.PNG" rel="icon">
+  <link href="assets/img/logomk.PNG" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- CDN Libraries -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #102c54;
+      --secondary: #2563eb;
+      --accent: #38bdf8;
+      --dark: #0f172a;
+      --light: #f1f5f9;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --body-bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-primary: #334155;
+      --text-secondary: #64748b;
+      --text-light: #94a3b8;
+      --border-color: #e2e8f0;
+      --box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      --gradient-primary: linear-gradient(135deg, #102c54, #2563eb);
+      --gradient-accent: linear-gradient(135deg, #2563eb, #38bdf8);
+      --transition: all 0.3s ease;
+      --border-radius: 12px;
+    }
+
+    /* Base Styles */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--body-bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+    }
+
+    a {
+      color: var(--secondary);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    a:hover {
+      color: var(--accent);
+    }
+
+    .btn {
+      padding: 0.6rem 1.5rem;
+      border-radius: 50px;
+      font-weight: 500;
+      transition: var(--transition);
+      text-transform: uppercase;
+      font-size: 0.875rem;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--gradient-primary);
+      border: none;
+      color: white;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+    }
+
+    .section {
+      padding: 100px 0;
+      position: relative;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: none;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      transition: var(--transition);
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Header Styles */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 997;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+      padding: 15px 0;
+    }
+
+
+    .header.scrolled {
+      padding: 8px 0;
+    }
+
+    .logo img {
+      max-height: 45px;
+      transition: var(--transition);
+    }
+
+    .navmenu ul {
+      display: flex;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      align-items: center;
+    }
+
+    .navmenu a {
+      display: block;
+      position: relative;
+      padding: 10px 15px;
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--dark);
+      white-space: nowrap;
+      transition: 0.3s;
+    }
+
+    .navmenu a:hover {
+      color: var(--secondary);
+    }
+
+    .navmenu a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: 0.3s;
+      bottom: 0;
+      left: 0;
+    }
+
+    .navmenu a:hover::after {
+      width: 100%;
+    }
+
+    .mobile-nav-toggle {
+      display: none;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 0;
+      transition: 0.5s;
+      color: var(--dark);
+    }
+
+    @media (max-width: 991px) {
+      .mobile-nav-toggle {
+        display: block;
+      }
+
+      .navmenu ul {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        padding: 20px 0;
+        box-shadow: 0 0 30px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      .navmenu ul.active {
+        display: flex;
+      }
+    }
+
+    /* Page Title */
+    .page-title {
+      background: var(--gradient-primary);
+      padding: 120px 0 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-title::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 60%;
+      height: 140%;
+      background: rgba(255, 255, 255, 0.05);
+      transform: rotate(-30deg);
+    }
+
+    .page-title::after {
+      content: '';
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 80%;
+      height: 180%;
+      background: rgba(255, 255, 255, 0.03);
+      transform: rotate(20deg);
+    }
+
+    .page-title h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .breadcrumbs {
+      position: relative;
+      z-index: 1;
+    }
+
+    .breadcrumbs ol {
+      display: flex;
+      flex-wrap: wrap;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .breadcrumbs ol li {
+      display: inline-block;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .breadcrumbs ol li + li {
+      padding-left: 10px;
+    }
+
+    .breadcrumbs ol li + li::before {
+      display: inline-block;
+      padding-right: 10px;
+      color: rgba(255, 255, 255, 0.6);
+      content: "/";
+    }
+
+    .breadcrumbs a {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .breadcrumbs a:hover {
+      color: white;
+      text-decoration: underline;
+    }
+
+    /* Section Title */
+    .section-title {
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .section-title h2 {
+      font-size: 36px;
+      position: relative;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      display: inline-block;
+    }
+
+    .section-title h2::after {
+      content: '';
+      position: absolute;
+      display: block;
+      width: 60px;
+      height: 3px;
+      background: var(--accent);
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .section-title p {
+      font-size: 18px;
+      color: var(--text-secondary);
+    }
+
+    /* Privacy Policy Section */
+    .privacy-section {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .privacy-shape {
+      position: absolute;
+      opacity: 0.03;
+      z-index: 0;
+    }
+
+    .privacy-shape.shape-1 {
+      top: 10%;
+      right: -5%;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .privacy-shape.shape-2 {
+      bottom: 5%;
+      left: -5%;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: var(--secondary);
+    }
+
+    .privacy-container {
+      position: relative;
+      z-index: 1;
+      background: white;
+      padding: 40px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    .privacy-card {
+      margin-bottom: 30px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+    }
+
+    .privacy-card:hover {
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      border-color: transparent;
+    }
+
+    .privacy-card-header {
+      padding: 20px;
+      background: rgba(37, 99, 235, 0.05);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .privacy-card-body {
+      padding: 20px;
+    }
+
+    .highlight-text {
+      background: linear-gradient(to right, var(--secondary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 600;
+    }
+
+    
+    /* Footer */
+    .footer {
+      background: var(--dark);
+      color: white;
+    }
+    
+    .footer-top {
+      padding: 80px 0 50px;
+    }
+    
+    .footer-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+    }
+    
+    .footer-about .logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .footer-about .logo img {
+      height: 40px;
+      margin-right: 10px;
+    }
+    
+    .footer-about .logo h1 {
+      color: white;
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .footer-about p {
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .footer-social a {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .footer-social a:hover {
+      background: var(--secondary);
+      color: var(--dark);
+    }
+    
+    .footer-links h4 {
+      margin-bottom: 25px;
+      font-size: 18px;
+      position: relative;
+      padding-bottom: 10px;
+      color: #e2e8f0;
+    }
+    
+    .footer-links h4::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--secondary);
+    }
+    
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .footer-links li {
+      margin-bottom: 15px;
+    }
+    
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .footer-links a i {
+      margin-right: 8px;
+      font-size: 12px;
+      color: var(--secondary);
+    }
+    
+    .footer-links a:hover {
+      color: white;
+      padding-left: 5px;
+    }
+    
+    .footer-newsletter h4 {
+      margin-bottom: 25px;
+      font-size: 18px;
+      position: relative;
+      padding-bottom: 10px;
+      color: #e2e8f0;
+    }
+    
+    .footer-newsletter h4::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--secondary);
+    }
+    
+    .footer-newsletter p {
+      margin-bottom: 5px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-bottom {
+      padding: 20px 0;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .footer-bottom p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-bottom a {
+      color: var(--secondary);
+    }
+
+    .social-links {
+      display: flex;
+      gap: 10px;
+    }
+
+    .social-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      color: white;
+      transition: 0.3s;
+      margin-bottom: 20px;
+    }
+
+    .social-links a:hover {
+      background: var(--accent);
+      transform: translateY(-5px);
+    }
+
+    .footer-newsletter {
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .copyright {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 25px 0;
+      text-align: center;
+    }
+
+    .copyright p {
+      margin: 0;
+    }
+
+    /* Scroll Top Button */
+    .scroll-top {
+      position: fixed;
+      visibility: hidden;
+      opacity: 0;
+      right: 15px;
+      bottom: 15px;
+      z-index: 996;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gradient-accent);
+      transition: all 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .scroll-top i {
+      font-size: 24px;
+      color: white;
+    }
+
+    .scroll-top:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .scroll-top.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Preloader */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      overflow: hidden;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--secondary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Privacy Policy Animation */
+    .animated-text {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .animated-text.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .section {
+        padding: 80px 0;
+      }
+      
+      .page-title {
+        padding: 100px 0 40px;
+      }
+      
+      .section-title h2 {
+        font-size: 28px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .section {
+        padding: 60px 0;
+      }
+      
+      .privacy-container {
+        padding: 25px;
+      }
+      
+      .section-title h2 {
+        font-size: 24px;
+      }
+      
+      .page-title h1 {
+        font-size: 2rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .section-title h2 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <header id="header" class="header d-flex align-items-center position-relative">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+      <a href="#" class="logo">
+        <img src="/static/assets/img/logomk.PNG" alt="MK Trading Academy"></a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul id="nav-menu-items">
+
+          <li><a href="{{ url_for('mainpage') }}">Home</a></li>
+        </ul>
+      </nav>
+
+      <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Page Title -->
+    <div class="page-title">
+      <div class="container" data-aos="fade-up">
+        <h1 class="animate__animated animate__fadeInDown">Privacy Policy</h1>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="index.html">Home</a></li>
+            <li class="current">Privacy Policy</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    <!-- Privacy Policy Section -->
+    <section id="privacy-section" class="privacy-section section">
+      <!-- Background Shapes -->
+      <div class="privacy-shape shape-1"></div>
+      <div class="privacy-shape shape-2"></div>
+      
+      <!-- Section Title -->
+      <div class="container section-title" data-aos="fade-up">
+        <h2>MK Trading Academy</h2>
+        <p>Privacy Policy<br></p>
+      </div><!-- End Section Title -->
+
+      <div class="container" data-aos="fade-up">
+        <div class="privacy-container">
+          <div class="row">
+            <div class="col-12">
+              <!-- Privacy Content -->
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Privacy Policy Overview</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your
+                    information when You use the Service and tells You about Your privacy rights and how the law protects You. We use Your Personal data to provide and improve the Service. By using the Service, You agree to the
+                    collection and use of information in accordance with this Privacy Policy.</p>
+                  <p>This document is an electronic record in terms of Information Technology Act, 2000 and rules there under as
+                    applicable and the amended provisions pertaining to electronic records in various statutes as amended by the
+                    Information Technology Act, 2000. This electronic record is generated by a computer system and does not
+                    require any physical or digital signatures.</p>
+                </div>
+              </div>
+
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Data Retention</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>The Company will retain Your Personal Data only for as long as is necessary for the purposes set out in this
+                    Privacy Policy. We will retain and use Your Personal Data to the extent necessary to comply with our legal
+                    obligations (for example, if we are required to retain your data to comply with applicable laws), resolve
+                    disputes, and enforce our legal agreements and policies. The Company will also retain Usage Data for internal analysis purposes. Usage Data is generally retained for a
+                    shorter period of time, except when this data is used to strengthen the security or to improve the
+                    functionality of Our Service, or We are legally obligated to retain this data for longer time periods.</p>
+                </div>
+              </div>
+
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Your Data Rights</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>You have the right to delete or request that We assist in deleting the Personal Data that We have collected
+                    about You.
+                    Our Service may give You the ability to delete certain information about You from within the Service.
+                    You may update, amend, or delete Your information at any time by signing in to Your Account, if you have one,
+                    and visiting the account settings section that allows you to manage Your personal information. You may also
+                    contact Us to request access to, correct, or delete any personal information that You have provided to Us.
+                    Please note, however, that We may need to retain certain information when we have a legal obligation or lawful
+                    basis to do so.</p>
+                </div>
+              </div>
+
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Acceptance of Terms</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>By accessing and/or using the website, you signify your agreement to accept this privacy policy. If you do not
+                    agree with any or all of the following terms of the privacy policy, please do not access and/or use the
+                    website. Providing information to us is your choice. You understand that any data, information, content or
+                    information that you submit to the website will be stored on the Mk Trading's servers for the purposes of
+                    making the website available to you. Please do not submit to the website any data, information, content or
+                    information which would include any personal information and sensitive personal data or information that you
+                    do not wish to be made available to the MK Trading. If you do not agree with any or all of the terms of
+                    this privacy policy, please do not provide any information to us. If at any time you wish to discontinue your
+                    access of the website, you are free to do so.</p>
+                </div>
+              </div>
+
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="500">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Policy Updates</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>Please review the privacy policy from time-to-time. Your continued use of the website following the posting of
+                    changes and/or modifications will constitute your acceptance of any revised privacy policy. The MK Trading
+                    retains the right at any time to deny or suspend access to all or part of the website to anyone who the
+                    MK Trading believes has violated any condition of this privacy policy.</p>
+                </div>
+              </div>
+
+              <div class="privacy-card" data-aos="fade-up" data-aos-delay="600">
+                <div class="privacy-card-header">
+                  <h4 class="mb-0">Contact Us</h4>
+                </div>
+                <div class="privacy-card-body animated-text">
+                  <p>If you have any questions about this Privacy Policy, You can contact us: By visiting this page:
+                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdEXsXzeTSUIwOtLIGZdG8oqID1s6NgfkpG3lCU79RizMH9sg/viewform" class="highlight-text">MK Trading Academy</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section><!-- End Privacy Policy Section -->
+  </main>
+
+  <footer id="footer" class="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="footer-container">
+          <div class="footer-about">
+            <a href="#" class="logo">
+              <img src="/static/assets/img/logomk.PNG" alt="MK Trading Academy">
+              <h1>MK Trading Academy</h1>
+            </a>
+
+            <div class="social-links d-flex mt-3">
+              <a href="https://www.youtube.com/@mktrading_academy"><i class="bi bi-youtube"></i></a>
+              <a href="https://www.instagram.com/mk_trading_academy/"><i class="bi bi-instagram"></i></a>
+              <a href="https://t.me/mktradingacademy"><i class="bi bi-telegram"></i></a>
+            </div>
+          </div>
+
+        
+          <div class="footer-links">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="{{ url_for('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+              <li><a href="{{ url_for('policy') }}"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-newsletter">
+            <h4>Address</h4>
+            <p>Office No, 407, Sr.No.72, Balaji enclave,</p>
+            <p>Datta Nagar Rd, Sai Colony, Katraj, Pune, Maharashtra 411046</p>
+            <p class="mt-3"><strong>Phone:</strong> <span>+91 9272120020</span></p>
+            <p><strong>Email:</strong> <span>mktrading810@gmail.com</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="copyright">
+      <div class="container text-center">
+        <p>© <span>Copyright</span> <strong class="px-1 sitename">MK Trading Academy</strong> <span>All Rights
+            Reserved</span></p>
+        <div class="credits"></div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll Top Button -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center">
+    <i class="bi bi-arrow-up-short"></i>
+  </a>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize AOS animation library
+      AOS.init({
+        duration: 1000,
+        easing: 'ease-in-out',
+        once: true,
+        mirror: false
+      });
+
+      // Preloader
+      window.addEventListener('load', function() {
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+          setTimeout(function() {
+            preloader.style.opacity = '0';
+            setTimeout(function() {
+              preloader.style.display = 'none';
+            }, 500);
+          }, 1000);
+        }
+      });
+
+      // Mobile navigation toggle
+      const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+      const navMenuItems = document.getElementById('nav-menu-items');
+
+      if (mobileNavToggle) {
+        mobileNavToggle.addEventListener('click', function() {
+          navMenuItems.classList.toggle('active');
+          this.classList.toggle('bi-list');
+          this.classList.toggle('bi-x');
+        });
+      }
+
+      // Sticky header
+      window.addEventListener('scroll', function() {
+        const header = document.getElementById('header');
+        if (window.scrollY > 100) {
+          header.classList.add('scrolled');
+        } else {
+          header.classList.remove('scrolled');
+        }
+      });
+
+      // Scroll to top button visibility
+      const scrollTop = document.getElementById('scroll-top');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 300) {
+          scrollTop.classList.add('active');
+        } else {
+          scrollTop.classList.remove('active');
+        }
+      });
+
+      // Smooth scroll for links with hash
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (this.getAttribute('href') !== '#') {
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+              behavior: 'smooth'
+            });
+          }
+        });
+      });
+
+      // Back to top button click
+      scrollTop.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+
+      // Animate privacy policy text on scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.animated-text').forEach(el => {
+        observer.observe(el);
+      });
+    });
+  </script>
+</body>
+</html>

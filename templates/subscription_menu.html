@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Center - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .subscription-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .subscription-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .subscription-status {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .nav-pills .nav-link {
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .premium-feature {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid #dee2e6;
+        }
+        .premium-feature:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+        .premium-feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #007bff;
+        }
+        .plan-card {
+            transition: transform 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .plan-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .plan-price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .plan-period {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .action-btn {
+            border-radius: 30px;
+            padding: 8px 24px;
+            font-weight: 500;
+        }
+        .section-heading {
+            border-bottom: 2px solid #f1f1f1;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/mainpage">Trading Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mainpage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/subscription/menu">Subscriptions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        Welcome, {{ user_name }}
+                    </span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="subscription-container">
+        <div class="subscription-header">
+            <h1>Subscription Center</h1>
+            <p class="lead">Manage your subscription and access premium features</p>
+        </div>
+
+        {% if subscription_info and subscription_info.has_subscription %}
+        <div class="subscription-status">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4><i class="fas fa-check-circle text-success me-2"></i> Active Subscription</h4>
+                    <p class="mb-0">You are currently subscribed to the <strong>{{ subscription_info.plan_name }}</strong> plan, valid until <strong>{{ subscription_info.expiry_date }}</strong></p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="/subscription/history" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-history me-1"></i> History
+                    </a>
+                    <a href="/subscription/plans" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-1"></i> Renew
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="subscription-status">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4><i class="fas fa-exclamation-triangle text-warning me-2"></i> No Active Subscription</h4>
+                    <p class="mb-0">Subscribe to access premium features like BTC live charts and News Sentiment Analysis</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="#subscription-plans" class="btn btn-primary">
+                        <i class="fas fa-crown me-1"></i> Subscribe Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <ul class="nav nav-pills mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#features">Premium Features</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#subscription-plans">Subscription Plans</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/subscription/history">Subscription History</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/faq">FAQ</a>
+            </li>
+        </ul>
+
+        <div id="features" class="mb-5">
+            <h2 class="section-heading">Premium Features</h2>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                <div class="col">
+                    <div class="premium-feature">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>BTC Live Charts</h3>
+                        <p>Access real-time Bitcoin price charts with advanced technical indicators. Monitor market movements and identify trading opportunities.</p>
+                        {% if subscription_info and subscription_info.has_subscription %}
+                        <a href="/TradingLivechart-Development.html" class="btn btn-primary action-btn">
+                            <i class="fas fa-chart-bar me-1"></i> Access Charts
+                        </a>
+                        {% else %}
+                        <a href="#subscription-plans" class="btn btn-outline-primary action-btn">
+                            <i class="fas fa-lock me-1"></i> Subscribe to Access
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="premium-feature">
+                        <div class="premium-feature-icon">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <h3>News Sentiment Analysis</h3>
+                        <p>Analyze the sentiment of financial news and its impact on markets. Get insights on how news affects cryptocurrency prices.</p>
+                        {% if subscription_info and subscription_info.has_subscription %}
+                        <a href="/StockNewsImpact.html" class="btn btn-primary action-btn">
+                            <i class="fas fa-search me-1"></i> Analyze News
+                        </a>
+                        {% else %}
+                        <a href="#subscription-plans" class="btn btn-outline-primary action-btn">
+                            <i class="fas fa-lock me-1"></i> Subscribe to Access
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="subscription-plans" class="mb-5">
+            <h2 class="section-heading">Choose Your Plan</h2>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for plan in plans %}
+                <div class="col">
+                    <div class="card plan-card h-100">
+                        <div class="plan-header bg-{{ ['primary', 'success', 'info'][loop.index0 % 3] }} text-white">
+                            <h3>{{ plan.name }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <div class="plan-price">₹{{ plan.price }}</div>
+                                <div class="plan-period">{{ plan.duration_days }} days</div>
+                            </div>
+                            <p>{{ plan.description }}</p>
+                            <h5>Features:</h5>
+                            <ul class="feature-list mb-4">
+                                {% for feature in plan.features %}
+                                <li><i class="fas fa-check text-success me-2"></i> {{ feature.strip() }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-light text-center">
+                            <a href="/subscription/checkout/{{ plan.id }}" class="btn btn-{{ ['primary', 'success', 'info'][loop.index0 % 3] }} action-btn">
+                                {% if subscription_info and subscription_info.has_subscription and subscription_info.plan_name == plan.name %}
+                                Extend Plan
+                                {% else %}
+                                Subscribe Now
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <p>Have questions about our subscription plans? <a href="/faq">Visit our FAQ</a> or <a href="#">contact support</a>.</p>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2023 Trading Platform. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/faq" class="text-white me-3">FAQ</a>
+                    <a href="/policy" class="text-white">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active tab
+                    document.querySelectorAll('.nav-link').forEach(navLink => {
+                        navLink.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

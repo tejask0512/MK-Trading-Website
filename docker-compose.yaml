@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  web:
+    image: tejask0512/mk-trading
+    build: .
+    ports:
+      - "8000:5000"
+    volumes:
+      - "/data"
+    depends_on:
+      - redis
+  
+
+  redis:
+    image: redis:alpine
+
+ 

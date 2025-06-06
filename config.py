@@ -1,0 +1,3 @@
+
+DATA_DIR='./data'
+HUGGING_FACE_TOKEN=""

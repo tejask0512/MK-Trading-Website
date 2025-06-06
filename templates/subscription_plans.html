@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .plan-card {
+            transition: transform 0.3s ease;
+            border-radius: 15px;
+            height: 100%;
+        }
+        .plan-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        .plan-card.premium {
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            color: white;
+        }
+        .plan-card.standard {
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            color: white;
+        }
+        .plan-card.basic {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .price {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .price-period {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        .btn-subscribe {
+            border-radius: 30px;
+            padding: 10px 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-subscribe:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/mainpage">Trading Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mainpage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/subscription/plans">Subscriptions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        Welcome, {{ user_name }}
+                    </span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h1>Choose Your Subscription Plan</h1>
+                <p class="lead">Get access to premium features and real-time market insights</p>
+            </div>
+        </div>
+
+        {% if active_subscription %}
+        <div class="alert alert-success mb-4">
+            <i class="fas fa-check-circle me-2"></i> You currently have an active <strong>{{ active_subscription[1] }}</strong> plan that expires on <strong>{{ active_subscription[2] }}</strong>.
+        </div>
+        {% endif %}
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for plan in plans %}
+            <div class="col">
+                <div class="card plan-card {{ plan.name.lower() }} h-100">
+                    <div class="card-body text-center">
+                        <h2 class="card-title mb-4">{{ plan.name }}</h2>
+                        <div class="price mb-3">
+                            ₹{{ plan.price }}
+                            <span class="price-period">/ {{ plan.duration_days }} days</span>
+                        </div>
+                        <p class="card-text mb-4">{{ plan.description }}</p>
+                        <h5 class="mb-3">Features:</h5>
+                        <ul class="feature-list mb-4">
+                            {% for feature in plan.features %}
+                            <li><i class="fas fa-check me-2"></i>{{ feature.strip() }}</li>
+                            {% endfor %}
+                        </ul>
+                        <!-- Important: Make sure this link is correct and points to the checkout route -->
+                        <a href="/subscription/checkout/{{ plan.id }}" class="btn btn-light btn-subscribe">
+                            {% if active_subscription and active_subscription[0] == plan.id %}
+                                Extend Subscription
+                            {% else %}
+                                Subscribe Now
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2023 Trading Platform. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/faq" class="text-white me-3">FAQ</a>
+                    <a href="/policy" class="text-white">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

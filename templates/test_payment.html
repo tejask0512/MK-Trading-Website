@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Payment - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .payment-container {
+            max-width: 700px;
+            margin: 50px auto;
+        }
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .dev-badge {
+            background-color: #ffc107;
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .price {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .btn-pay {
+            background: #198754;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-pay:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #157347;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/mainpage">Trading Platform</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/mainpage">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/subscription/menu">Subscriptions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">
+                        Welcome, {{ user_name }}
+                    </span>
+                    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="payment-container">
+        <div class="card">
+            <div class="card-header">
+                <h2>Checkout</h2>
+                <div class="dev-badge">
+                    <i class="fas fa-code"></i> Development Mode
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i> This is a test payment. No actual charges will be made.
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Order Summary</h5>
+                        <p class="mb-1"><strong>Plan:</strong> {{ plan.name }}</p>
+                        <p class="mb-1"><strong>Duration:</strong> {{ plan.duration_days }} days</p>
+                        <p class="mb-0"><strong>Description:</strong> {{ plan.description }}</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="text-muted mb-1">Amount to pay</p>
+                        <p class="price mb-2">₹{{ plan.price }}</p>
+                        <p class="text-success"><i class="fas fa-shield-alt"></i> Secure test payment</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <form action="/subscription/test_payment" method="POST" class="text-center">
+                    <button type="submit" class="btn btn-pay">
+                        <i class="fas fa-lock me-2"></i> Complete Test Payment
+                    </button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="/subscription/plans" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Plans
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

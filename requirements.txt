@@ -1,0 +1,40 @@
+torch>=1.10.0
+transformers>=4.15.0
+datasets==2.11.0
+evaluate>=0.3.0
+
+# Data processing
+pandas==1.5.3
+numpy==1.24.2
+scikit-learn==1.2.2
+nltk==3.8.1
+python-dateutil==2.8.2
+
+# Web development
+flask==2.2.3
+flask-cors==3.0.10
+flask-wtf
+flask-login
+flask-bcrypt
+flask-mail
+flask-caching
+werkzeug==2.3.8
+gunicorn==20.1.0
+python-dotenv==0.19.2
+
+# Web scraping
+requests==2.28.2
+beautifulsoup4==4.11.2
+
+# Scheduling and background tasks
+schedule==1.1.0
+redis
+
+# Google Cloud
+google-cloud-storage>=1.44.0
+
+#payment gateway
+razorpay
+
+# Editable install — only include if you're building a local package
+# -e .

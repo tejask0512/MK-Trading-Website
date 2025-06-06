@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Live Chart Dashboard</title>
+    
+    <!-- TradingView Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    
+    <!-- Toastify JS for notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastify-js/1.12.0/toastify.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #0f172a;
+            --accent-color: #4f46e5;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+        
+        .container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stock-news-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .stock-news-btn:hover {
+            background-color: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dashboard-controls a{
+            color: #ffffff;
+        }
+        
+        .ticker-tape-container {
+            width: 100%;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .widgets-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            width: 100%;
+        }
+
+        .tradingview-widget-container {
+            margin-bottom: 20px;
+        }
+        
+        @media (min-width: 992px) {
+            .widgets-container {
+                grid-template-columns: 1fr 100;
+            }
+        }
+        
+        .chart-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .bottom-widgets {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        @media (min-width: 768px) {
+            .bottom-widgets {
+                grid-template-columns: 25% 75%;
+            }
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .card:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .card-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            transition: opacity 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        label {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+        
+        select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: white;
+            color: var(--text-color);
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        select:hover, select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            width: 80px;
+            font-family: inherit;
+        }
+        
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        
+        .connection-label {
+            padding: 6px 12px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .connected {
+            background-color: var(--success-color);
+        }
+        
+        .connecting {
+            background-color: var(--warning-color);
+        }
+        
+        .disconnected {
+            background-color: var(--danger-color);
+        }
+        
+        .chart-container {
+            height: 500px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: none;
+        }
+        
+        .chart-container.active {
+            display: block;
+        }
+        
+        .chart-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            border-radius: 0;
+        }
+        
+        .widget-container {
+            position: relative;
+            height: 500px;
+            display: none;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .widget-container.active {
+            display: block;
+        }
+        
+        .widget-container.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+            border-radius: 0;
+        }
+        
+        .data-section {
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        .data-table tr:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .signal-display {
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            border-radius: 6px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .signal-buy {
+            background-color: var(--success-color);
+        }
+        
+        .signal-sell {
+            background-color: var(--danger-color);
+        }
+        
+        .statistic {
+            background-color: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            background-color: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+        
+        .download-section {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+        
+        .download-link {
+            text-decoration: none;
+        }
+        
+        .chart-type-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-toggle-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background-color: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .chart-toggle-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .widget-card {
+            height: 550px;
+            overflow: hidden;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-success {
+            background-color: #dcfce7;
+            color: #15803d;
+        }
+        
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #a16207;
+        }
+        
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        /* Toast customization */
+        .toastify {
+            border-radius: 8px !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            padding: 12px 20px !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Pulse animation for connection status */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .connecting {
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Fullscreen button */
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 4px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .fullscreen-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        
+        /* Widget title */
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        /* Timeframe Button Styles */
+        .timeframe-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .timeframe-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background-color: #f1f5f9;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .timeframe-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* Media queries for responsive design */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .control-group {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .chart-container {
+                height: 400px;
+            }
+            
+            .widget-card {
+                height: 450px;
+            }
+            
+            .bottom-widgets {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .chart-container {
+                height: 350px;
+            }
+            
+            .stat-item {
+                min-width: 45%;
+            }
+            
+            .widget-card {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> BTC/USDT Live Trading Chart</h1>
+            <div class="dashboard-controls">
+                <a href="{{ url_for('mainpage') }}">Home</a>
+                
+                <button class="stock-news-btn" onclick="navigateToStockNews()">
+                    <i class="fas fa-newspaper"></i> Stock News
+                </button>
+            </div>
+        </div>
+        
+        <!-- TradingView Widget BEGIN -->
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+            "symbols": [
+              {
+                "proName": "FX_IDC:EURUSD",
+                "title": "EUR to USD"
+              },
+              {
+                "proName": "BITSTAMP:BTCUSD",
+                "title": "Bitcoin"
+              },
+              {
+                "proName": "BITSTAMP:ETHUSD",
+                "title": "Ethereum"
+              },
+              {
+                "description": "XAUUSD",
+                "proName": "FOREXCOM:XAUUSD"
+              },
+              {
+                "description": "NDX",
+                "proName": "NASDAQ:NDX"
+              },
+              {
+                "description": "US OIL",
+                "proName": "TVC:USOIL"
+              }
+            ],
+            "showSymbolLogo": true,
+            "isTransparent": false,
+            "displayMode": "adaptive",
+            "colorTheme": "dark",
+            "locale": "en"
+          }
+            </script>
+        </div>
+        <!-- TradingView Widget END -->
+        
+        <div class="main-content">
+            <div class="widgets-container">
+                <div class="chart-section">
+                    <div class="chart-type-toggle">
+                        <button id="custom-chart-btn" class="chart-toggle-btn active">Custom Chart</button>
+                        <button id="tradingview-chart-btn" class="chart-toggle-btn">TradingView Chart</button>
+                    </div>
+                    
+                    <div id="custom-controls" class="controls card">
+                        <div class="control-group">
+                            <label for="timeframe"><i class="fas fa-clock"></i> Timeframe:</label>
+                            <div class="timeframe-buttons">
+                                <button id="tf-5m" class="timeframe-btn active" data-timeframe="5m">5 Minutes</button>
+                                <button id="tf-15m" class="timeframe-btn" data-timeframe="15m">15 Minutes</button>
+                                <button id="tf-1h" class="timeframe-btn" data-timeframe="1h">1 Hour</button>
+                            </div>
+                            <span id="connection-status" class="connection-label connected">
+                                <i class="fas fa-check-circle"></i> Connected
+                            </span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="trend_percentage"><i class="fas fa-chart-line"></i> Trend %:</label>
+                            <input type="number" id="trend_percentage" value="1.0" step="0.1" min="0.1">
+                            <button id="updateTrend" class="btn btn-warning">
+                                <i class="fas fa-sync-alt"></i> Update
+                            </button>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="retrace_percentage"><i class="fas fa-undo"></i> Retrace %:</label>
+                            <input type="number" id="retrace_percentage" value="0.5" step="0.1" min="0.1">
+                            <button id="updateRetrace" class="btn btn-warning">
+                                <i class="fas fa-sync-alt"></i> Update
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="chart-signals" class="control-group">
+                        <div class="signal-display" id="signalDisplay"><i class="fas fa-signal"></i> No Signal</div>
+                        <div class="signal-display" id="priceDisplay"><i class="fas fa-tag"></i> Price: --</div>
+                        <div class="signal-display" id="timeframeDisplay"><i class="fas fa-clock"></i> 5m</div>
+                    </div>
+                    
+                    <!-- Chart containers for different timeframes -->
+                    <div id="chart-container-5m" class="chart-container active">
+                        <button id="fullscreen-btn-5m" class="fullscreen-btn" title="Toggle Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="chart-container-15m" class="chart-container">
+                        <button id="fullscreen-btn-15m" class="fullscreen-btn" title="Toggle Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="chart-container-1h" class="chart-container">
+                        <button id="fullscreen-btn-1h" class="fullscreen-btn" title="Toggle Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="tradingview-widget" class="widget-container">
+                        <button id="tv-fullscreen-btn" class="fullscreen-btn" title="Toggle Fullscreen">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <div class="tradingview-widget-container" style="height:100%;width:100%">
+                            <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+                            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                            {
+                            "autosize": true,
+                            "symbol": "BINANCE:BTCUSDT",
+                            "interval": "5",
+                            "timezone": "Etc/UTC",
+                            "theme": "light",
+                            "style": "1",
+                            "locale": "en",
+                            "withdateranges": true,
+                            "hide_side_toolbar": false,
+                            "allow_symbol_change": true,
+                            "details": true,
+                            "calendar": false,
+                            "support_host": "https://www.tradingview.com"
+                            }
+                            </script>
+                        </div>
+                    </div>
+                    
+                    <div id="custom-stats" class="statistic">
+                        <div class="stat-item">
+                            <div class="stat-value" id="total-signals">0</div>
+                            <div class="stat-label">Total Signals</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="buy-signals">0</div>
+                            <div class="stat-label">Buy Signals</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="sell-signals">0</div>
+                            <div class="stat-label">Sell Signals</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="candle-count">0</div>
+                            <div class="stat-label">Candles</div>
+                        </div>
+                    </div>
+                    
+                    <div id="data-section" class="data-section card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fas fa-table"></i> Recent Data</h3>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Open</th>
+                                    <th>High</th>
+                                    <th>Low</th>
+                                    <th>Close</th>
+                                    <th>Mid-Price</th>
+                                    <th>Signal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-tbody">
+                                <!-- Data will be added here dynamically -->
+                            </tbody>
+                        </table>
+                        
+                        <div class="download-section">
+                            <button id="download-csv" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Download CSV Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom Widgets: Stock Stories and Crypto Heatmap -->
+            <div class="bottom-widgets">
+                <!-- Stock Stories Widget -->
+                <div class="widget-card">
+                    <h3 class="widget-title"><i class="fas fa-newspaper"></i> Market News & Stories</h3>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+                        {
+                        "feedMode": "all_symbols",
+                        "isTransparent": false,
+                        "displayMode": "regular",
+                        "width": "100%",
+                        "height": "500",
+                        "colorTheme": "dark",
+                        "locale": "en"
+                        }
+                        </script>
+                    </div>
+                </div>
+                
+                <!-- Crypto Heatmap Widget -->
+                <div class="widget-card">
+                    <h3 class="widget-title"><i class="fas fa-th"></i> Crypto Market Heatmap</h3>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-crypto-coins-heatmap.js" async>
+                        {
+                        "dataSource": "Crypto",
+                        "blockSize": "market_cap_calc",
+                        "blockColor": "change",
+                        "locale": "en",
+                        "symbolUrl": "",
+                        "colorTheme": "dark",
+                        "hasTopBar": false,
+                        "isDataSetEnabled": false,
+                        "isZoomEnabled": true,
+                        "hasSymbolTooltip": true,
+                        "isMonoSize": false,
+                        "width": "100%",
+                        "height": "500"
+                        }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        const timeframes = ['5m', '15m', '1h'];
+        const charts = {};
+        const candleSeries = {};
+        const websockets = {};
+        const candleData = {
+            '5m': [],
+            '15m': [],
+            '1h': []
+        };
+        const markers = {
+            '5m': [],
+            '15m': [],
+            '1h': []
+        };
+        let activeTimeframe = '5m';
+        let csvData = {
+            '5m': [["time", "open", "high", "low", "close", "mid_price", "signal", "trend_start_time"]],
+            '15m': [["time", "open", "high", "low", "close", "mid_price", "signal", "trend_start_time"]],
+            '1h': [["time", "open", "high", "low", "close", "mid_price", "signal", "trend_start_time"]]
+        };
+        
+        // Track fullscreen state
+        let isCustomChartFullscreen = false;
+        let isTradingViewFullscreen = false;
+        
+        // Strategy variables
+        let trendPercentage = 1.0;
+        let retracePercentage = 0.5;
+        
+        // Strategy data for each timeframe
+        const trendData = {
+            '5m': {
+                high: null,
+                low: null,
+                lastSignal: null,
+                trendStartPrice: null,
+                trendStartTime: null
+            },
+            '15m': {
+                high: null,
+                low: null,
+                lastSignal: null,
+                trendStartPrice: null,
+                trendStartTime: null
+            },
+            '1h': {
+                high: null,
+                low: null,
+                lastSignal: null,
+                trendStartPrice: null,
+                trendStartTime: null
+            }
+        };
+        
+        // Statistics for each timeframe
+        const stats = {
+            '5m': {
+                totalSignals: 0,
+                buySignals: 0,
+                sellSignals: 0,
+                candleCount: 0
+            },
+            '15m': {
+                totalSignals: 0,
+                buySignals: 0,
+                sellSignals: 0,
+                candleCount: 0
+            },
+            '1h': {
+                totalSignals: 0,
+                buySignals: 0,
+                sellSignals: 0,
+                candleCount: 0
+            }
+        };
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            setupEventListeners();
+            connectToAllTimeframes();
+            showNotification('Welcome to BTC/USDT Live Trading Chart', 'info');
+        });
+        
+        // Initialize all charts
+        function initCharts() {
+            timeframes.forEach(timeframe => {
+                const chartContainer = document.getElementById(`chart-container-${timeframe}`);
+                
+                charts[timeframe] = LightweightCharts.createChart(chartContainer, {
+                    width: chartContainer.clientWidth,
+                    height: chartContainer.clientHeight,
+                    layout: {
+                        backgroundColor: '#ffffff',
+                        textColor: '#333333',
+                        fontSize: 12,
+                        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                    },
+                    grid: {
+                        vertLines: { color: '#f0f0f0' },
+                        horzLines: { color: '#f0f0f0' },
+                    },
+                    crosshair: {
+                        mode: LightweightCharts.CrosshairMode.Normal,
+                    },
+                    timeScale: {
+                        timeVisible: true,
+                        secondsVisible: false,
+                        borderColor: '#d1d4dc',
+                        barSpacing: 10,
+                    },
+                    rightPriceScale: {
+                        borderColor: '#d1d4dc',
+                        scaleMargins: {
+                            top: 0.1,
+                            bottom: 0.1,
+                        }
+                    },
+                    handleScroll: {
+                        mouseWheel: true,
+                        pressedMouseMove: true,
+                    },
+                    handleScale: {
+                        axisPressedMouseMove: true,
+                        mouseWheel: true,
+                        pinch: true,
+                    },
+                });
+                
+                // Add candlestick series
+                candleSeries[timeframe] = charts[timeframe].addCandlestickSeries({
+                    upColor: '#26a69a',
+                    downColor: '#ef5350',
+                    borderVisible: false,
+                    wickUpColor: '#26a69a',
+                    wickDownColor: '#ef5350',
+                });
+            });
+            
+            showNotification('All charts initialized successfully', 'success');
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Setup timeframe button listeners
+            document.querySelectorAll('.timeframe-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const timeframe = this.dataset.timeframe;
+                    switchTimeframe(timeframe);
+                });
+            });
+            
+            // Update trend percentage
+            document.getElementById('updateTrend').addEventListener('click', function() {
+                const input = document.getElementById('trend_percentage');
+                const newValue = parseFloat(input.value);
+                
+                if (isNaN(newValue) || newValue <= 0) {
+                    showNotification('Invalid trend percentage value', 'error');
+                    return;
+                }
+                
+                trendPercentage = newValue;
+                showNotification(`Trend percentage updated to ${trendPercentage}%`, 'success');
+            });
+            
+            // Update retrace percentage
+            document.getElementById('updateRetrace').addEventListener('click', function() {
+                const input = document.getElementById('retrace_percentage');
+                const newValue = parseFloat(input.value);
+                
+                if (isNaN(newValue) || newValue <= 0) {
+                    showNotification('Invalid retrace percentage value', 'error');
+                    return;
+                }
+                
+                retracePercentage = newValue;
+                showNotification(`Retrace percentage updated to ${retracePercentage}%`, 'success');
+            });
+            
+            // Download CSV
+            document.getElementById('download-csv').addEventListener('click', function() {
+                downloadCSV();
+            });
+            
+            // Chart type toggle buttons
+            document.getElementById('custom-chart-btn').addEventListener('click', function() {
+                toggleChartView('custom');
+            });
+            
+            document.getElementById('tradingview-chart-btn').addEventListener('click', function() {
+                toggleChartView('tradingview');
+            });
+            
+            // Setup fullscreen buttons for each timeframe
+            timeframes.forEach(timeframe => {
+                document.getElementById(`fullscreen-btn-${timeframe}`).addEventListener('click', function() {
+                    toggleFullscreen(timeframe);
+                });
+            });
+            
+            // TradingView chart fullscreen button
+            document.getElementById('tv-fullscreen-btn').addEventListener('click', function() {
+                toggleFullscreen('tradingview');
+            });
+            
+            // Handle ESC key to exit fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (isCustomChartFullscreen) {
+                        toggleFullscreen(activeTimeframe);
+                    }
+                    if (isTradingViewFullscreen) {
+                        toggleFullscreen('tradingview');
+                    }
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                timeframes.forEach(timeframe => {
+                    if (charts[timeframe]) {
+                        charts[timeframe].applyOptions({
+                            width: document.getElementById(`chart-container-${timeframe}`).clientWidth,
+                            height: document.getElementById(`chart-container-${timeframe}`).clientHeight
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Switch between timeframes
+        function switchTimeframe(timeframe) {
+            if (!timeframes.includes(timeframe)) return;
+            
+            // Update active timeframe
+            activeTimeframe = timeframe;
+            
+            // Update button states
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`tf-${timeframe}`).classList.add('active');
+            
+            // Hide all chart containers
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Show the selected chart container
+            document.getElementById(`chart-container-${timeframe}`).classList.add('active');
+            
+            // Update timeframe display
+            document.getElementById('timeframeDisplay').innerHTML = `<i class="fas fa-clock"></i> ${timeframe}`;
+            
+            // Update data table with timeframe-specific data
+            updateDataTable(null, null, true);
+            
+            // Update stats display with timeframe-specific stats
+            updateStats();
+            
+            // Update signal display for the active timeframe
+            const lastSignal = trendData[timeframe].lastSignal;
+            const signalDisplay = document.getElementById('signalDisplay');
+            
+            if (lastSignal === "BUY") {
+                signalDisplay.innerHTML = '<i class="fas fa-arrow-up"></i> BUY';
+                signalDisplay.className = 'signal-display signal-buy';
+            } else if (lastSignal === "SELL") {
+                signalDisplay.innerHTML = '<i class="fas fa-arrow-down"></i> SELL';
+                signalDisplay.className = 'signal-display signal-sell';
+            } else {
+                signalDisplay.innerHTML = '<i class="fas fa-signal"></i> No Signal';
+                signalDisplay.className = 'signal-display';
+            }
+            
+            showNotification(`Switched to ${timeframe} timeframe`, 'info');
+        }
+        
+        // Toggle fullscreen for charts
+        function toggleFullscreen(chartType) {
+            if (timeframes.includes(chartType)) {
+                const chartContainer = document.getElementById(`chart-container-${chartType}`);
+                const fullscreenBtn = document.getElementById(`fullscreen-btn-${chartType}`);
+                isCustomChartFullscreen = !isCustomChartFullscreen;
+                
+                if (isCustomChartFullscreen) {
+                    chartContainer.classList.add('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                    
+                    // Resize chart to fit fullscreen
+                    charts[chartType].applyOptions({
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    });
+                    
+                    showNotification('Expanded to fullscreen', 'info');
+                } else {
+                    chartContainer.classList.remove('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                    
+                    // Resize chart back to container size
+                    charts[chartType].applyOptions({
+                        width: chartContainer.clientWidth,
+                        height: chartContainer.clientHeight
+                    });
+                    
+                    showNotification('Exited fullscreen', 'info');
+                }
+            } else if (chartType === 'tradingview') {
+                const tradingViewContainer = document.getElementById('tradingview-widget');
+                const fullscreenBtn = document.getElementById('tv-fullscreen-btn');
+                
+                isTradingViewFullscreen = !isTradingViewFullscreen;
+                
+                if (isTradingViewFullscreen) {
+                    tradingViewContainer.classList.add('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                    showNotification('Expanded to fullscreen', 'info');
+                } else {
+                    tradingViewContainer.classList.remove('fullscreen');
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                    showNotification('Exited fullscreen', 'info');
+                }
+            }
+        }
+        
+        // Toggle between custom chart and TradingView chart
+        function toggleChartView(type) {
+            const customControls = document.getElementById('custom-controls');
+            const chartSignals = document.getElementById('chart-signals');
+            const customStats = document.getElementById('custom-stats');
+            const dataSection = document.getElementById('data-section');
+            const customChartBtn = document.getElementById('custom-chart-btn');
+            const tradingViewChartBtn = document.getElementById('tradingview-chart-btn');
+            const tradingViewWidget = document.getElementById('tradingview-widget');
+            
+            // Hide all chart containers first
+            document.querySelectorAll('.chart-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            tradingViewWidget.classList.remove('active');
+            
+            if (type === 'custom') {
+                // Show currently active timeframe chart
+                document.getElementById(`chart-container-${activeTimeframe}`).classList.add('active');
+                
+                customChartBtn.classList.add('active');
+                tradingViewChartBtn.classList.remove('active');
+                
+                // Show custom chart controls and data
+                customControls.style.display = 'flex';
+                chartSignals.style.display = 'flex';
+                customStats.style.display = 'flex';
+                dataSection.style.display = 'block';
+                
+                showNotification('Switched to Custom Chart', 'info');
+            } else {
+                tradingViewWidget.classList.add('active');
+                
+                customChartBtn.classList.remove('active');
+                tradingViewChartBtn.classList.add('active');
+                
+                // Hide custom chart controls and data
+                customControls.style.display = 'none';
+                chartSignals.style.display = 'none';
+                customStats.style.display = 'none';
+                dataSection.style.display = 'none';
+                
+                showNotification('Switched to TradingView Chart', 'info');
+            }
+        }
+        
+        // Connect to all timeframe WebSockets
+        function connectToAllTimeframes() {
+            timeframes.forEach(timeframe => {
+                connectTimeframe(timeframe);
+            });
+        }
+        
+        // Connect to a specific timeframe
+        function connectTimeframe(timeframe) {
+            // Define WebSocket URL for futures
+            const BINANCE_WS_URL = `wss://fstream.binance.com/ws/btcusdt@kline_${timeframe}`;
+            
+            showNotification(`Connecting to BTC/USDT on ${timeframe} timeframe...`, 'info');
+            
+            try {
+                websockets[timeframe] = new WebSocket(BINANCE_WS_URL);
+                
+                websockets[timeframe].onopen = function() {
+                    showNotification(`Connected to BTC/USDT WebSocket for ${timeframe} timeframe`, 'success');
+                };
+                
+                websockets[timeframe].onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.k) {
+                            const kline = data.k;
+                            
+                            // Check if candle is closed or still updating
+                            const isCandleClosed = kline.x;
+                            
+                            // Extract data
+                            const timestamp = kline.t;
+                            const formattedTime = new Date(timestamp).toISOString().replace('T', ' ').substr(0, 19);
+                            const open = parseFloat(kline.o);
+                            const high = parseFloat(kline.h);
+                            const low = parseFloat(kline.l);
+                            const close = parseFloat(kline.c);
+                            const midPrice = calculateMidPrice(high, low);
+                            
+                            // Create candle object
+                            const candle = {
+                                time: timestamp / 1000, // For chart (seconds)
+                                formattedTime: formattedTime, // For CSV and display
+                                open: open,
+                                high: high,
+                                low: low,
+                                close: close,
+                                midPrice: midPrice
+                            };
+                            
+                            // Only run strategy on closed candles to avoid false signals
+                            let signal = null;
+                            if (isCandleClosed) {
+                                signal = trendObservingStrategy(candle, timeframe);
+                                
+                                // Update candle count when a new candle is closed
+                                stats[timeframe].candleCount++;
+                                
+                                if (timeframe === activeTimeframe) {
+                                    updateStats();
+                                }
+                                
+                                if (stats[timeframe].candleCount % 10 === 0 && timeframe === activeTimeframe) {
+                                    showNotification(`Received ${stats[timeframe].candleCount} candles for ${timeframe}`, 'info');
+                                }
+                                
+                                // Add closed candle to table and CSV
+                                if (timeframe === activeTimeframe) {
+                                    updateDataTable(candle, signal);
+                                }
+                                addToCsv(candle, signal, timeframe);
+                            }
+                            
+                            // Always update the chart and price display
+                            updateChart(candle, signal, timeframe);
+                            
+                            if (timeframe === activeTimeframe) {
+                                document.getElementById('priceDisplay').innerHTML = `<i class="fas fa-tag"></i> Price: ${close.toFixed(2)}`;
+                            }
+                        }
+                    } catch (error) {
+                        showNotification(`Error processing message for ${timeframe}: ${error.message}`, 'error');
+                        console.error(`Error processing message for ${timeframe}:`, error);
+                    }
+                };
+                
+                websockets[timeframe].onerror = function(error) {
+                    showNotification(`WebSocket Error (${timeframe}): ${error.message || 'Unknown error'}`, 'error');
+                    console.error(`WebSocket Error (${timeframe}):`, error);
+                    
+                    // Try to reconnect after a delay
+                    setTimeout(() => {
+                        if (websockets[timeframe].readyState === WebSocket.CLOSED) {
+                            showNotification(`Attempting to reconnect ${timeframe}...`, 'warning');
+                            connectTimeframe(timeframe);
+                        }
+                    }, 5000);
+                };
+                
+                websockets[timeframe].onclose = function() {
+                    showNotification(`WebSocket connection closed for ${timeframe}`, 'warning');
+                    
+                    // Try to reconnect after a delay
+                    setTimeout(() => {
+                        showNotification(`Attempting to reconnect ${timeframe}...`, 'warning');
+                        connectTimeframe(timeframe);
+                    }, 5000);
+                };
+                
+                return true;
+            } catch (error) {
+                showNotification(`Failed to connect to ${timeframe}: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        // Trend Observing Strategy
+        function trendObservingStrategy(candle, timeframe) {
+            const currentPrice = candle.close;
+            const currentTime = candle.time;
+            
+            // Initialize trend start if not set
+            if (trendData[timeframe].trendStartPrice === null) {
+                trendData[timeframe].trendStartPrice = currentPrice;
+                trendData[timeframe].trendStartTime = currentTime;
+                trendData[timeframe].high = trendData[timeframe].low = currentPrice;
+                
+                if (timeframe === activeTimeframe) {
+                    showNotification(`Strategy initialized for ${timeframe}: Starting price = ${currentPrice}`, 'info');
+                }
+                return null;
+            }
+            
+            // Update high/low values
+            trendData[timeframe].high = Math.max(trendData[timeframe].high, currentPrice);
+            trendData[timeframe].low = Math.min(trendData[timeframe].low, currentPrice);
+            
+            // Calculate percentage changes
+            const downtrend = ((trendData[timeframe].high - currentPrice) / trendData[timeframe].high) * 100;
+            const uptrend = ((currentPrice - trendData[timeframe].low) / trendData[timeframe].low) * 100;
+            
+            // Generate BUY signal for downtrend
+            if (downtrend >= trendPercentage) {
+                if (trendData[timeframe].lastSignal !== "BUY" || (
+                    trendData[timeframe].lastSignal === "BUY" &&
+                    ((trendData[timeframe].trendStartPrice - currentPrice) / trendData[timeframe].trendStartPrice) * 100 >= trendPercentage
+                )) {
+                    trendData[timeframe].lastSignal = "BUY";
+                    trendData[timeframe].low = currentPrice;
+                    trendData[timeframe].trendStartPrice = currentPrice;
+                    trendData[timeframe].trendStartTime = currentTime;
+                    
+                    // Update signal display if this is the active timeframe
+                    if (timeframe === activeTimeframe) {
+                        const signalDisplay = document.getElementById('signalDisplay');
+                        signalDisplay.innerHTML = '<i class="fas fa-arrow-up"></i> BUY';
+                        signalDisplay.className = 'signal-display signal-buy';
+                    }
+                    
+                    // Update statistics
+                    stats[timeframe].totalSignals++;
+                    stats[timeframe].buySignals++;
+                    
+                    if (timeframe === activeTimeframe) {
+                        updateStats();
+                        showNotification(`BUY signal generated at ${currentPrice.toFixed(2)} for ${timeframe}`, 'success');
+                    }
+                    
+                    return {
+                        signal: "BUY",
+                        price: currentPrice,
+                        time: currentTime
+                    };
+                }
+            }
+            
+            // Generate SELL signal for uptrend
+            if (uptrend >= trendPercentage) {
+                if (trendData[timeframe].lastSignal !== "SELL" || (
+                    trendData[timeframe].lastSignal === "SELL" &&
+                    ((currentPrice - trendData[timeframe].trendStartPrice) / trendData[timeframe].trendStartPrice) * 100 >= trendPercentage
+                )) {
+                    trendData[timeframe].lastSignal = "SELL";
+                    trendData[timeframe].high = currentPrice;
+                    trendData[timeframe].trendStartPrice = currentPrice;
+                    trendData[timeframe].trendStartTime = currentTime;
+                    
+                    // Update signal display if this is the active timeframe
+                    if (timeframe === activeTimeframe) {
+                        const signalDisplay = document.getElementById('signalDisplay');
+                        signalDisplay.innerHTML = '<i class="fas fa-arrow-down"></i> SELL';
+                        signalDisplay.className = 'signal-display signal-sell';
+                    }
+                    
+                    // Update statistics
+                    stats[timeframe].totalSignals++;
+                    stats[timeframe].sellSignals++;
+                    
+                    if (timeframe === activeTimeframe) {
+                        updateStats();
+                        showNotification(`SELL signal generated at ${currentPrice.toFixed(2)} for ${timeframe}`, 'danger');
+                    }
+                    
+                    return {
+                        signal: "SELL",
+                        price: currentPrice,
+                        time: currentTime
+                    };
+                }
+            }
+            
+            // Handle retrace conditions
+            const retraceDown = ((trendData[timeframe].trendStartPrice - currentPrice) / trendData[timeframe].trendStartPrice) * 100;
+            const retraceUp = ((currentPrice - trendData[timeframe].trendStartPrice) / trendData[timeframe].trendStartPrice) * 100;
+            
+            if (retraceDown >= retracePercentage || retraceUp >= retracePercentage) {
+                if (timeframe === activeTimeframe) {
+                    showNotification(`Retrace detected in ${timeframe}: Resetting trend start to ${currentPrice.toFixed(2)}`, 'warning');
+                }
+                trendData[timeframe].trendStartPrice = currentPrice;
+                trendData[timeframe].trendStartTime = currentTime;
+            }
+            
+            return null;
+        }
+        
+        // Calculate mid price
+        function calculateMidPrice(high, low) {
+            return (high + low) / 2;
+        }
+        
+        // Update chart with new candle data
+        function updateChart(candle, signal, timeframe) {
+            try {
+                // Add or update candle to series
+                candleSeries[timeframe].update(candle);
+                
+                // Store candle data for history
+                const existingIndex = candleData[timeframe].findIndex(c => c.time === candle.time);
+                if (existingIndex !== -1) {
+                    // Update existing candle
+                    candleData[timeframe][existingIndex] = candle;
+                } else {
+                    // Add new candle
+                    candleData[timeframe].push(candle);
+                    
+                    // Limit the number of candles to prevent memory issues
+                    if (candleData[timeframe].length > 300) {
+                        candleData[timeframe].shift();
+                    }
+                }
+                
+                // Add marker for signal
+                if (signal) {
+                    const marker = {
+                        time: signal.time,
+                        position: signal.signal === 'BUY' ? 'belowBar' : 'aboveBar',
+                        color: signal.signal === 'BUY' ? '#10b981' : '#ef4444',
+                        shape: signal.signal === 'BUY' ? 'arrowUp' : 'arrowDown',
+                        text: signal.signal
+                    };
+                    
+                    markers[timeframe].push(marker);
+                    candleSeries[timeframe].setMarkers(markers[timeframe]);
+                }
+                
+                // Fit content to view occasionally
+                if (candleData[timeframe].length % 20 === 0) {
+                    charts[timeframe].timeScale().fitContent();
+                }
+                
+            } catch (error) {
+                showNotification(`Error updating chart for ${timeframe}: ${error.message}`, 'error');
+                console.error(`Error updating chart for ${timeframe}:`, error);
+            }
+        }
+        
+        // Update data table
+        function updateDataTable(candle, signal, isTimeframeSwitch = false) {
+            const tbody = document.getElementById('data-tbody');
+            
+            // Clear table when switching timeframes
+            if (isTimeframeSwitch) {
+                tbody.innerHTML = '';
+                
+                // Populate with the last 10 candles from the active timeframe
+                const tf = activeTimeframe;
+                const lastCandles = candleData[tf].slice(-10).reverse();
+                
+                lastCandles.forEach(candle => {
+                    // Find the signal for this candle if any
+                    const signalIndex = markers[tf].findIndex(m => m.time === candle.time);
+                    const signal = signalIndex !== -1 ? { signal: markers[tf][signalIndex].text } : null;
+                    
+                    addRowToDataTable(tbody, candle, signal);
+                });
+                
+                return;
+            }
+            
+            // Add new candle data
+            if (candle) {
+                addRowToDataTable(tbody, candle, signal);
+                
+                // Limit number of rows
+                while (tbody.children.length > 10) {
+                    tbody.removeChild(tbody.lastChild);
+                }
+            }
+        }
+        
+        // Helper function to add a row to the data table
+        function addRowToDataTable(tbody, candle, signal) {
+            const row = document.createElement('tr');
+            
+            // Create cells
+            row.innerHTML = `
+                <td>${candle.formattedTime}</td>
+                <td>${candle.open.toFixed(2)}</td>
+                <td>${candle.high.toFixed(2)}</td>
+                <td>${candle.low.toFixed(2)}</td>
+                <td>${candle.close.toFixed(2)}</td>
+                <td>${candle.midPrice.toFixed(2)}</td>
+                <td>${signal ? `<span class="badge ${signal.signal === 'BUY' ? 'badge-success' : 'badge-danger'}">${signal.signal}</span>` : '-'}</td>
+            `;
+            
+            // Add row to table
+            tbody.prepend(row);
+        }
+        
+        // Add data to CSV
+        function addToCsv(candle, signal, timeframe) {
+            const trendStartTime = trendData[timeframe].trendStartTime ? new Date(trendData[timeframe].trendStartTime * 1000).toISOString().replace('T', ' ').substr(0, 19) : '';
+            
+            // Create row for CSV
+            const row = [
+                candle.formattedTime,
+                candle.open.toFixed(2),
+                candle.high.toFixed(2),
+                candle.low.toFixed(2),
+                candle.close.toFixed(2),
+                candle.midPrice.toFixed(2),
+                signal ? signal.signal : '',
+                trendStartTime
+            ];
+            
+            // Add to CSV data
+            csvData[timeframe].push(row);
+            
+            // Limit CSV data size
+            if (csvData[timeframe].length > 5000) {
+                csvData[timeframe] = csvData[timeframe].slice(0, 1).concat(csvData[timeframe].slice(-4999));
+            }
+        }
+        
+        // Download CSV
+        function downloadCSV() {
+            const tf = activeTimeframe;
+            let csvContent = csvData[tf].map(row => row.join(',')).join('\n');
+            
+            // Create blob and download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            // Create temp link and trigger download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `btcusdt_${tf}_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            showNotification(`CSV downloaded with ${csvData[tf].length - 1} rows of ${tf} data`, 'success');
+        }
+        
+        // Update statistics display
+        function updateStats() {
+            const tf = activeTimeframe;
+            document.getElementById('total-signals').textContent = stats[tf].totalSignals;
+            document.getElementById('buy-signals').textContent = stats[tf].buySignals;
+            document.getElementById('sell-signals').textContent = stats[tf].sellSignals;
+            document.getElementById('candle-count').textContent = stats[tf].candleCount;
+        }
+        
+        // Show notification toast
+        function showNotification(message, type) {
+            let backgroundColor;
+            let icon = '';
+            
+            switch(type) {
+                case 'success':
+                    backgroundColor = '#10b981';
+                    icon = '<i class="fas fa-check-circle"></i> ';
+                    break;
+                case 'error':
+                    backgroundColor = '#ef4444';
+                    icon = '<i class="fas fa-exclamation-circle"></i> ';
+                    break;
+                case 'warning':
+                    backgroundColor = '#f59e0b';
+                    icon = '<i class="fas fa-exclamation-triangle"></i> ';
+                    break;
+                case 'info':
+                default:
+                    backgroundColor = '#3b82f6';
+                    icon = '<i class="fas fa-info-circle"></i> ';
+                    break;
+            }
+            
+            // Create text node to avoid HTML rendering in toast
+            const textNode = document.createTextNode(message);
+            const iconElement = document.createElement('span');
+            iconElement.innerHTML = icon;
+            
+            const textContent = document.createElement('span');
+            textContent.appendChild(iconElement);
+            textContent.appendChild(textNode);
+            
+            Toastify({
+                node: textContent,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                backgroundColor: backgroundColor,
+                stopOnFocus: true
+            }).showToast();
+            
+            console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
+        }
+        
+        // Navigate to Stock News dashboard
+        function navigateToStockNews() {
+            showNotification('Navigating to Stock News Dashboard...', 'info');
+            window.location.href = 'StockNewsImpact.html';
+        }
+    </script>
+</body>
+</html>

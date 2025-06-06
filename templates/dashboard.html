@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Analytics Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary-color: #4895ef;
+            --accent-color: #4cc9f0;
+            --text-color: #2b2d42;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --danger-color: #f72585;
+            --success-color: #4cc9f0;
+            --info-color: #4895ef;
+            --warning-color: #fb8500;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: #f5f7fa;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .logo i {
+            margin-right: 0.5rem;
+            font-size: 1.8rem;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .user-avatar i {
+            font-size: 1.2rem;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 200px;
+            z-index: 1001;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-profile:hover .dropdown-menu {
+            display: block;
+        }
+        
+        .dropdown-menu ul {
+            list-style: none;
+            padding: 0.5rem 0;
+        }
+        
+        .dropdown-menu li a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .dropdown-menu li a:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .dropdown-menu li a i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .dropdown-menu .divider {
+            height: 1px;
+            margin: 0.5rem 0;
+            background-color: #eee;
+        }
+        
+        .logout-btn {
+            color: var(--danger-color) !important;
+        }
+        
+        /* Main navigation */
+        .main-nav {
+            background-color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-links a i {
+            margin-right: 0.5rem;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .nav-links a.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        /* Dashboard sections */
+        .dashboard {
+            padding: 2rem 0;
+        }
+        
+        .dashboard-header {
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+        
+        .dashboard-header p {
+            color: var(--gray-dark);
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .card-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .card-label {
+            font-size: 1rem;
+            color: var(--gray-dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-weight: 600;
+            position: relative;
+            padding-left: 1rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            position: relative;
+        }
+        
+        .feature-card-header h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-card-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-card-content {
+            padding: 1.5rem;
+        }
+        
+        .feature-card-content p {
+            margin-bottom: 1.5rem;
+            color: var(--gray-dark);
+        }
+        
+        .feature-card-content .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .feature-card-content .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: white;
+            padding: 2rem 0;
+            border-top: 1px solid #eee;
+            margin-top: 2rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        
+        .footer-logo i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .footer-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--gray-dark);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .user-menu {
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .nav-links {
+                margin-top: 1rem;
+                flex-wrap: wrap;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .footer-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+        
+        /* Animations */
+        @keyframes slideInFromBottom {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideInFromBottom 0.5s ease-out forwards;
+        }
+        
+        /* Colors for cards */
+        .bg-primary { background-color: var(--primary-color); }
+        .bg-success { background-color: var(--success-color); }
+        .bg-warning { background-color: var(--warning-color); }
+        .bg-danger { background-color: var(--danger-color); }
+        .text-primary { color: var(--primary-color); }
+        .text-success { color: var(--success-color); }
+        .text-warning { color: var(--warning-color); }
+        .text-danger { color: var(--danger-color); }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Financial Analytics</span>
+            </div>
+            
+            <div class="user-menu">
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="user-name">{{ user_name }}</span>
+                    <i class="fas fa-chevron-down" style="margin-left: 0.5rem; font-size: 0.8rem;"></i>
+                    
+                    <div class="dropdown-menu">
+                        <ul>
+                            
+                            <li><a href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                            <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <nav class="main-nav">
+        <div class="container nav-container">
+            <div class="nav-links">
+                <a href="{{ url_for('mainpage') }}">Home</a>
+                <a href="{{ url_for('dashboard') }}" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/TradingLivechart-Development.html"><i class="fas fa-chart-bar"></i> Trading Livechart</a>
+                <a href="/StockNewsImpact.html"><i class="fas fa-newspaper"></i> Market Sentiment</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="dashboard">
+        <div class="container">
+            <div class="dashboard-header">
+                <h1>Welcome back, {{ user_name }}</h1>
+                <p>Here's what's happening with your financial analytics today.</p>
+            </div>
+            
+            <div class="cards-grid">
+                <div class="card animate-slide-in" style="animation-delay: 0.1s;">
+                    <div class="card-icon bg-primary">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-label">Market Sentiment</div>
+                        <div class="card-value text-primary">Neutral</div>
+                        <p>Based on latest news analysis</p>
+                    </div>
+                </div>
+                
+                <div class="card animate-slide-in" style="animation-delay: 0.2s;">
+                    <div class="card-icon bg-success">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-label">Analyzed News</div>
+                        <div class="card-value text-success">125</div>
+                        <p>Articles processed in the last 24h</p>
+                    </div>
+                </div>
+                
+                <div class="card animate-slide-in" style="animation-delay: 0.3s;">
+                    <div class="card-icon bg-warning">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-label">Market Alerts</div>
+                        <div class="card-value text-warning">3</div>
+                        <p>Major market movements detected</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="section-title">Financial Analytics Tools</h2>
+            
+            <div class="feature-cards">
+                <div class="feature-card animate-slide-in" style="animation-delay: 0.1s;">
+                    <div class="feature-card-header">
+                        <h3>Trading Livechart</h3>
+                        <p>Real-time market visualization</p>
+                    </div>
+                    <div class="feature-card-content">
+                        <p>Access real-time trading charts with advanced technical indicators and visualization tools to make informed trading decisions.</p>
+                        <a href="/TradingLivechart-Development.html" class="btn">View Livechart</a>
+                    </div>
+                </div>
+                
+                <div class="feature-card animate-slide-in" style="animation-delay: 0.2s;">
+                    <div class="feature-card-header">
+                        <h3>Market Sentiment Analysis</h3>
+                        <p>News-based sentiment indicators</p>
+                    </div>
+                    <div class="feature-card-content">
+                        <p>Analyze market sentiment based on news articles and social media mentions to understand market direction and investor sentiment.</p>
+                        <a href="/StockNewsImpact.html" class="btn">Sentiment Dashboard</a>
+                    </div>
+                </div>
+                
+                <div class="feature-card animate-slide-in" style="animation-delay: 0.3s;">
+                    <div class="feature-card-header">
+                        <h3>Account Settings</h3>
+                        <p>Manage your account preferences</p>
+                    </div>
+                    <div class="feature-card-content">
+                        <p>Update your profile information, change password, and manage notification preferences in your account settings.</p>
+                        <a href="{{ url_for('settings') }}" class="btn">Manage Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Financial Analytics</span>
+                </div>
+                <div class="footer-links">
+                    <a href="#">About</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; Copyright MK Trading Academy All Rights Reserved
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Animate elements on scroll
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make the navigation active based on current page
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-links a');
+            
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute('href');
+                if (currentPath === linkPath || 
+                    (currentPath === '/dashboard' && linkPath === '{{ url_for("dashboard") }}')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // Animation for cards and sections
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.animate-slide-in');
+                
+                elements.forEach(element => {
+                    const position = element.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight / 1.2;
+                    
+                    if (position < screenPosition) {
+                        element.style.animation = 'slideInFromBottom 0.5s ease-out forwards';
+                        element.style.opacity = '1';
+                    }
+                });
+            };
+            
+            // Initial animation
+            animateElements();
+            
+            // Animate on scroll
+            window.addEventListener('scroll', animateElements);
+        });
+    </script>
+</body>
+</html>

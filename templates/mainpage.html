@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK Trading Academy</title>
+  <link rel="icon" href="/static/assets/img/logomk.PNG">
+  <link rel="apple-touch-icon" href="/static/assets/img/logomk.PNG">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- AOS Animation Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+  
+  <!-- Swiper Slider -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.3.2/swiper-bundle.min.css">
+  
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --secondary: rgb(16, 199, 144);
+      --dark: #111827;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --success: #10b981;
+      --danger: #ef4444;
+      --body-font: 'Poppins', sans-serif;
+      --heading-font: 'Montserrat', sans-serif;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+    }
+    
+    body {
+      font-family: var(--body-font);
+      line-height: 1.6;
+      color: var(--dark);
+      background-color: var(--light);
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--heading-font);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    
+    a {
+      text-decoration: none;
+      color: var(--primary);
+      transition: all 0.3s ease;
+    }
+    
+    a:hover {
+      color: var(--secondary);
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    
+    .section {
+      padding: 100px 0;
+      position: relative;
+    }
+    
+    .section-title {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    
+    .section-title h2 {
+      font-size: 36px;
+      margin-bottom: 15px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .section-title h2:after {
+      content: '';
+      position: absolute;
+      width: 60px;
+      height: 4px;
+      background: var(--secondary);
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .section-title p {
+      font-size: 16px;
+      color: var(--gray);
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      border: 2px solid var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-light);
+      color: white;
+      border-color: var(--primary-light);
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      color: var(--secondary);
+      border: 2px solid var(--secondary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--secondary);
+      color: var(--dark);
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 15px 0;
+      background: rgb(97, 104, 109);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      opacity: 0.8;
+      
+    }
+    
+    .header.scrolled {
+      padding: 10px 0;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      background: rgba(9, 21, 48, 0.98);
+      
+    }
+    
+    .header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo img {
+      height: 50px;
+      margin-right: 10px;
+    }
+    
+    .logo h1 {
+      color: rgb(252, 172, 0);
+      font-size: 17px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+    }
+    
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      
+    }
+    
+    .nav-menu ul {
+      display: flex;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .nav-menu li {
+      margin: 0 15px;
+    }
+    
+    .nav-menu a {
+      color: white;
+      font-weight: 500;
+      font-size: 15px;
+      position: relative;
+      padding: 5px 0;
+    }
+    
+    .nav-menu a::before {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: var(--secondary);
+      transition: width 0.3s ease;
+    }
+    
+    .nav-menu a:hover::before,
+    .nav-menu a.active::before {
+      width: 100%;
+    }
+    
+    .mobile-nav-toggle {
+      display: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: white;
+    }
+    
+    /* Hero Section */
+    .hero {
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--dark);
+    }
+    
+    .hero-slider {
+      height: 100%;
+    }
+    
+    .hero-slide {
+      position: relative;
+      height: 100%;
+      width: 100%;
+    }
+    
+    .hero-slide video,
+    .hero-slide img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      z-index: 1;
+    }
+    
+    .hero-content {
+      max-width: 800px;
+      padding: 0 15px;
+      color: white;
+    }
+    
+    .hero-content h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      line-height: 1.2;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1s ease forwards;
+    }
+    
+    .hero-content p {
+      font-size: 1.25rem;
+      margin-bottom: 30px;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1s ease forwards 0.3s;
+    }
+    
+    .hero-content .btn {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1s ease forwards 0.6s;
+    }
+    
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .hero-pagination {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      z-index: 2;
+    }
+    
+    .swiper-pagination-bullet {
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.5);
+      opacity: 1;
+      margin: 0 5px;
+    }
+    
+    .swiper-pagination-bullet-active {
+      background: var(--secondary);
+      position: relative;
+    }
+    
+    .swiper-pagination-bullet-active::after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border: 2px solid var(--secondary);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+    
+    /* About Section */
+    .about {
+      background: white;
+    }
+    
+    .about-content {
+      display: flex;
+      align-items: center;
+      gap: 50px;
+    }
+    
+    .about-video {
+      flex: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .about-video iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+    }
+    
+    .about-text {
+      flex: 1;
+    }
+    
+    .about-text h3 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 32px;
+    }
+    
+    .about-text p {
+      margin-bottom: 15px;
+      color: var(--gray);
+    }
+    
+    /* Client Section */
+    .clients {
+      background: linear-gradient(rgba(80, 12, 38, 0.9), rgba(0, 119, 255, 0.897)), url('/static/assets/img/glowing-blue-pulse-trace-compute.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: rgb(255, 255, 255);
+      padding: 80px 0;
+    }
+    
+    .client-slider {
+      padding: 20px 0;
+    }
+    
+    .client-slide {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+    }
+    
+    .client-slide img {
+      max-width: 120px;
+      max-height: 60px;
+      filter: brightness(0) invert(1);
+      opacity: 0.6;
+      transition: all 0.3s ease;
+    }
+    
+    .client-slide:hover img {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    
+    /* Features Section */
+    .features {
+      background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('/static/assets/img/abstract-gradient-neon-lights.jpg');
+      background-size: cover;
+      background-position: center;
+      color: white;
+      padding: 120px 0;
+    }
+    
+    .features-content {
+      display: flex;
+      align-items: center;
+      gap: 50px;
+    }
+    
+    .features-image {
+      flex: 1;
+      position: relative;
+    }
+    
+    .features-image img {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0px 15px 30px rgba(251, 255, 0, 0.925);
+    }
+    
+    .features-image::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid var(--secondary);
+      border-radius: 10px;
+      top: -20px;
+      left: -20px;
+      z-index: -1;
+    }
+    
+    .features-text {
+      flex: 1;
+      padding-left: 30px;
+    }
+    
+    .features-text h3 {
+      color: var(--secondary);
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    
+    .features-text .smalltext {
+      color: var(--primary-light);
+      display: block;
+      margin-bottom: 30px;
+      font-size: 18px;
+    }
+    
+    .features-text p {
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
+      line-height: 1.8;
+    }
+    
+    /* Courses Section */
+    .courses {
+      background: #f8fafc;
+      padding: 120px 0;
+    }
+    
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 30px;
+    }
+    
+    .course-card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .course-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .course-image {
+      height: 270px;
+      overflow: hidden;
+    }
+    
+    .course-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    .course-card:hover .course-image img {
+      transform: scale(1.1);
+    }
+    
+    .course-content {
+      padding: 25px;
+    }
+    
+    .course-content h4 {
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: var(--dark);
+    }
+    
+    .course-content .btn {
+      width: 100%;
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    /* Services Section */
+    .services {
+      padding: 120px 0;
+      background: white;
+    }
+    
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    
+    .service-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+    
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--primary);
+      z-index: -1;
+      transform: scaleY(0);
+      transform-origin: bottom;
+      transition: transform 0.5s ease;
+    }
+    
+    .service-card:hover::before {
+      transform: scaleY(1);
+    }
+    
+    .service-card .icon {
+      width: 70px;
+      height: 70px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 25px;
+      transition: all 0.3s ease;
+    }
+    
+    .service-card:hover .icon {
+      background: white;
+    }
+    
+    .service-card .icon i {
+      font-size: 30px;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .service-card:hover .icon i {
+      color: var(--primary);
+    }
+    
+    .service-card h3 {
+      margin-bottom: 15px;
+      font-size: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .service-card p {
+      color: var(--gray);
+      transition: all 0.3s ease;
+    }
+    
+    .service-card:hover h3,
+    .service-card:hover p {
+      color: white;
+    }
+    
+    /* Call to Action */
+    .cta {
+      position: relative;
+      padding: 100px 0;
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/static/assets/img/glowing-blue-pulse-trace-compute.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+      text-align: center;
+    }
+    
+    .cta h3 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    
+    .cta p {
+      margin-bottom: 30px;
+      font-size: 18px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Portfolio/Academy Section */
+    .portfolio {
+      padding: 120px 0;
+      background: #f8fafc;
+    }
+    
+    .portfolio-filters {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    
+    .portfolio-filters li {
+      list-style: none;
+      margin: 0 5px 10px;
+      padding: 8px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .portfolio-filters li:hover,
+    .portfolio-filters li.filter-active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 30px;
+    }
+    
+    .portfolio-item {
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+    
+    .portfolio-item img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      transition: all 0.5s ease;
+    }
+    
+    .portfolio-item:hover img {
+      transform: scale(1.1);
+    }
+    
+    .portfolio-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 20px;
+      transform: translateY(100%);
+      transition: all 0.3s ease;
+    }
+    
+    .portfolio-item:hover .portfolio-info {
+      transform: translateY(0);
+    }
+    
+    .portfolio-info h4 {
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+    
+    .portfolio-info a {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 40px;
+      height: 40px;
+      background: white;
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .portfolio-info a:hover {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    /* Stats Section */
+    .stats {
+      background: white;
+      padding: 100px 0;
+    }
+    
+    .stats-container {
+      display: flex;
+      align-items: center;
+      gap: 50px;
+    }
+    
+    .stats-image {
+      flex: 1;
+    }
+    
+    .stats-image img {
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-content {
+      flex: 1;
+    }
+    
+    .stats-content h3 {
+      margin-bottom: 20px;
+      font-size: 32px;
+      color: var(--primary);
+    }
+    
+    .stats-content p {
+      margin-bottom: 30px;
+      color: var(--gray);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 30px;
+    }
+    
+    .stats-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .stats-item i {
+      font-size: 32px;
+      margin-right: 15px;
+      color: var(--secondary);
+    }
+    
+    .stats-item .number {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--dark);
+    }
+    
+    .stats-item p {
+      font-size: 14px;
+      margin: 0;
+      color: var(--gray);
+    }
+    
+    /* Testimonials Section */
+    .testimonials {
+      position: relative;
+      padding: 120px 0;
+      background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/static/assets/img/bull-bear-trading-3840x2160-1384.png');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
+    
+    .testimonial-slider {
+      padding: 30px 0;
+    }
+    
+    .testimonial-slide {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+      padding: 40px;
+      border-radius: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .testimonial-slide:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .testimonial-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      border: 4px solid var(--secondary);
+      overflow: hidden;
+    }
+    
+    .testimonial-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .testimonial-slide h3 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+    
+    .testimonial-slide h4 {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 15px;
+      font-weight: 400;
+    }
+    
+    .testimonial-slide .stars {
+      color: var(--secondary);
+      margin-bottom: 20px;
+    }
+    
+    .testimonial-slide p {
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .testimonial-slide .quote-icon {
+      font-size: 24px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Team Section */
+    .team {
+      padding: 120px 0;
+      background: #f8fafc;
+    }
+    
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 30px;
+    }
+    
+    .team-member {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 20px 30px rgba(230, 9, 9, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .team-member:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 60px rgba(0, 17, 248, 0.966);
+    }
+    
+    .member-image {
+      height: 400px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .member-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: all 0.5s ease;
+    }
+    
+    .team-member:hover .member-image img {
+      transform: scale(1.1);
+    }
+    
+    .member-social {
+      position: absolute;
+      bottom: -60px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.7);
+      transition: all 0.3s ease;
+    }
+    
+    .team-member:hover .member-social {
+      bottom: 0;
+    }
+    
+    .member-social a {
+      width: 36px;
+      height: 36px;
+      background: white;
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    
+    .member-social a:hover {
+      background: var(--secondary);
+      color: white;
+    }
+    
+    .member-info {
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .member-info h4 {
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+    
+    .member-info span {
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    /* Contact Section */
+    .contact {
+      padding: 120px 0;
+      background: white;
+    }
+    
+    .contact-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 50px;
+    }
+    
+    .contact-info {
+      background: var(--primary);
+      color: white;
+      padding: 40px;
+      border-radius: 15px;
+    }
+    
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+    
+    .contact-item i {
+      width: 45px;
+      height: 45px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .contact-item h3 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+    
+    .contact-item p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .map {
+      width: 100%;
+      height: 300px;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    
+    .map iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .contact-form {
+      text-align: center;
+    }
+    
+    .contact-form h4 {
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+    
+    .contact-form p {
+      margin-bottom: 30px;
+      color: var(--gray);
+    }
+    
+    .contact-form .btn {
+      min-width: 200px;
+    }
+    
+    /* Footer */
+    .footer {
+      background: var(--dark);
+      color: white;
+    }
+    
+    .footer-top {
+      padding: 80px 0 50px;
+    }
+    
+    .footer-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 40px;
+    }
+    
+    .footer-about .logo {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .footer-about .logo img {
+      height: 40px;
+      margin-right: 10px;
+    }
+    
+    .footer-about .logo h1 {
+      color: white;
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .footer-about p {
+      margin-bottom: 20px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .footer-social a {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .footer-social a:hover {
+      background: var(--secondary);
+      color: var(--dark);
+    }
+    
+    .footer-links h4 {
+      margin-bottom: 25px;
+      font-size: 18px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-links h4::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--secondary);
+    }
+    
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .footer-links li {
+      margin-bottom: 15px;
+    }
+    
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.7);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .footer-links a i {
+      margin-right: 8px;
+      font-size: 12px;
+      color: var(--secondary);
+    }
+    
+    .footer-links a:hover {
+      color: white;
+      padding-left: 5px;
+    }
+    
+    .footer-newsletter h4 {
+      margin-bottom: 25px;
+      font-size: 18px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-newsletter h4::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 30px;
+      height: 2px;
+      background: var(--secondary);
+    }
+    
+    .footer-newsletter p {
+      margin-bottom: 5px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-bottom {
+      padding: 20px 0;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .footer-bottom p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .footer-bottom a {
+      color: var(--secondary);
+    }
+    
+   
+    
+    /* Scroll Top Button */
+    .scroll-top {
+      position: fixed;
+      bottom: 25px;
+      right: 100px;
+      width: 45px;
+      height: 45px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .scroll-top.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .scroll-top:hover {
+      background: var(--secondary);
+      color: var(--dark);
+    }
+    
+    /* Preloader */
+    .preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    .preloader-spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--secondary);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    
+    /* Trading Animation */
+    .trading-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.1;
+    }
+    
+    .candlestick {
+      position: absolute;
+      width: 4px;
+      background: var(--success);
+      bottom: 0;
+      animation: candlestick-rise linear forwards;
+    }
+    
+    .candlestick::before,
+    .candlestick::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      left: 1px;
+      background: var(--success);
+    }
+    
+    .candlestick::before {
+      top: -10px;
+      height: 10px;
+    }
+    
+    .candlestick::after {
+      bottom: -10px;
+      height: 10px;
+    }
+    
+    .candlestick.negative {
+      background: var(--danger);
+    }
+    
+    .candlestick.negative::before,
+    .candlestick.negative::after {
+      background: var(--danger);
+    }
+    
+    @keyframes candlestick-rise {
+      to {
+        height: var(--height);
+      }
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 1200px) {
+      .container {
+        max-width: 960px;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .container {
+        max-width: 720px;
+      }
+      
+      .section {
+        padding: 80px 0;
+      }
+      
+      .hero-content h1 {
+        font-size: 3rem;
+      }
+      
+      .about-content,
+      .features-content,
+      .stats-container,
+      .contact-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      
+      .portfolio-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        max-width: 540px;
+      }
+      
+      .section {
+        padding: 60px 0;
+      }
+      
+      .section-title h2 {
+        font-size: 28px;
+      }
+      
+      .hero-content h1 {
+        font-size: 2.5rem;
+      }
+      
+      .hero-content p {
+        font-size: 1rem;
+      }
+      
+      .nav-menu {
+        position: fixed;
+        top: 70px;
+        right: -300px;
+        width: 280px;
+        height: calc(100vh - 70px);
+        background: var(--dark);
+        flex-direction: column;
+        padding: 30px 0;
+        transition: all 0.4s ease;
+        z-index: 998;
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .nav-menu.active {
+        right: 0;
+      }
+      
+      .nav-menu ul {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .nav-menu li {
+        margin: 0;
+        width: 100%;
+      }
+      
+      .nav-menu a {
+        padding: 12px 30px;
+        display: block;
+        text-align: left;
+      }
+      
+      .mobile-nav-toggle {
+        display: inline-block;
+      }
+      
+      .login-btn, .register-btn {
+  padding: 8px 15px;
+  border-radius: 50px;
+  margin-left: 5px;
+}
+
+.login-btn {
+  color: white;
+  background-color: transparent;
+  border: 1px solid var(--secondary);
+}
+
+.login-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.register-btn {
+  color: var(--dark);
+  background-color: var(--secondary);
+}
+
+.register-btn:hover {
+  background-color: #ffd066;
+}
+      .about-content,
+      .features-content {
+        flex-direction: column-reverse;
+      }
+      
+      .services-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .contact-container {
+        display: block;
+      }
+      
+      .contact-info {
+        margin-bottom: 40px;
+      }
+      
+      .footer-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .hero-content h1 {
+        font-size: 2rem;
+      }
+      
+      .section-title h2 {
+        font-size: 24px;
+      }
+      
+      .portfolio-grid,
+      .courses-grid,
+      .services-grid,
+      .team-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .btn {
+        padding: 10px 25px;
+        font-size: 14px;
+      }
+      
+      .portfolio-item img {
+        height: 240px;
+      }
+      
+      .scroll-top {
+        right: 25px;
+        bottom: 100px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div class="preloader">
+    <div class="preloader-spinner"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <a href="#" class="logo">
+        <img src="/static/assets/img/logomk.PNG" alt="MK Trading Academy">
+        <h1>MK Trading Academy</h1>
+      </a>
+      
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="{{ url_for('mainpage') }}" class="active">Home</a></li>
+          <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="{{ url_for('trading_livechart') }}">AlgoLiveChart</a></li>
+          <li><a href="{{ url_for('stock_news_impact') }}">News</a></li>
+          <li><a class="nav-link" href="/subscription/menu">Subscriptions</a></li>
+          <li><a href="#courses">Courses</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="{{ url_for('profile') }}">Settings</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout</a>
+        </ul>
+      </nav>
+      
+      <div class="mobile-nav-toggle">
+        <i class="fas fa-bars"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="hero" class="hero">
+    <div class="swiper hero-slider">
+      <div class="swiper-wrapper">
+        <!-- Video Slide -->
+        <div class="swiper-slide hero-slide">
+          <img src="/static/assets/img/MK-team.jpg" alt="Trading">
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <h1>Master The Stock Market</h1>
+              <p>Your gateway to financial independence through expert trading education</p>
+              <a href="#courses" class="btn btn-primary">Explore Courses</a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Image Slides -->
+        <div class="swiper-slide hero-slide">
+          <img src="/static/assets/img/1st home new.jpg" alt="Trading">
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <h1>Learn From The Experts</h1>
+              <p>Gain practical knowledge from professional traders with years of market experience</p>
+              <a href="#about" class="btn btn-primary">Learn More</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="swiper-slide hero-slide">
+          <img src="/static/assets/img/2nd home new.jpg" alt="Trading Charts">
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <h1>Proven Trading Strategies</h1>
+              <p>Master time-tested trading techniques that deliver consistent results</p>
+              <a href="#courses" class="btn btn-primary">View Courses</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="swiper-slide hero-slide">
+          <img src="/static/assets/img/3rd home new.jpg" alt="Trading Success">
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <h1>Achieve Financial Freedom</h1>
+              <p>Join hundreds of successful students who transformed their financial future</p>
+              <a href="#testimonials" class="btn btn-primary">Success Stories</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="swiper-slide hero-slide">
+          <img src="/static/assets/img/4th home new.jpg" alt="Trading Academy">
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <h1>Start Your Trading Journey</h1>
+              <p>Take the first step toward becoming a successful trader today</p>
+              <a href="#contact" class="btn btn-primary">Contact Us</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="hero-pagination swiper-pagination"></div>
+    </div>
+    
+    <!-- Trading Animation Background -->
+    <div class="trading-animation"></div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="about section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Our Story</h2>
+        <p>About MK Trading Academy</p>
+      </div>
+      
+      <div class="about-content">
+        <div class="about-video" data-aos="fade-right" data-aos-delay="100">
+          <iframe src="https://www.youtube.com/embed/pRNvdxAsGfE?si=mRqyh19wgNTAQUXD" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        
+        <div class="about-text" data-aos="fade-left" data-aos-delay="200">
+          <h3>Welcome to MK Trading Academy</h3>
+          <p>Your next door pitstop to the world of stock market, established for the very first time in India. MK Trading stands as the premier institute for stock market education in India, offering the most comprehensive online stock market course available.</p>
+          
+          <p>Our mission is to empower the younger generation, providing them with the knowledge and tools to achieve financial independence and success. We are dedicated to those who are ambitious, eager to learn, and ready to take control of their financial future.</p>
+          
+          <p>Trading is often perceived as a business that isn't suitable for everyone, but this is a misconception we aim to dispel. Our program focuses on teaching long-tested strategies that have consistently proven to be profitable. Through our comprehensive curriculum, we equip our students with the skills and knowledge needed to succeed in the stock market.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clients Section -->
+  <section id="clients" class="clients section">
+    <div class="container" data-aos="fade-up">
+      <div class="swiper client-slider">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="100">
+            <img src="/static/assets/img/clients/client1.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="200">
+            <img src="/static/assets/img/clients/client2.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="300">
+            <img src="/static/assets/img/clients/client3.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="400">
+            <img src="/static/assets/img/clients/client4.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="500">
+            <img src="/static/assets/img/clients/client5.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="600">
+            <img src="/static/assets/img/clients/client6.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="700">
+            <img src="/static/assets/img/clients/client7.png" alt="Client">
+          </div>
+          <div class="swiper-slide client-slide" data-aos="zoom-in" data-aos-delay="800">
+            <img src="/static/assets/img/clients/client8.png" alt="Client">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features section">
+    <div class="container">
+      <div class="features-content">
+        <div class="features-image" data-aos="fade-right" data-aos-delay="100">
+          <img src="/static/assets/img/kunal1.png" alt="Kunal Shivaji Biradar">
+        </div>
+        
+        <div class="features-text" data-aos="fade-left" data-aos-delay="200">
+          <h3>Kunal Shivaji Biradar</h3>
+          <span class="smalltext">CEO at MK Trading Academy</span>
+          
+          <p>Over the years, Kunal developed a realistic, in-depth, and time-tested strategy, shaped by his own hands-on expertise in the industry. His broad and varied experience in the markets has given him a thorough understanding of how things work, allowing him to create plans that aren't just theoretical, but truly effective.</p>
+          
+          <p>But he isn't just about crafting strategies—he's also passionate about teaching. He knows that the stock market can seem intimidating, so he's made it a point to break down complex ideas into simpler, more accessible concepts.</p>
+          
+          <p>His courses are designed to be approachable for everyone, no matter how much—or how little—they know going in. Kunal's teaching style is straightforward and engaging, making it easier for aspiring traders to grasp the ins and outs of the stock market.</p>
+          
+          <p>Over time, he has taught more than 400 students, helping them develop the skills they need to succeed as traders. His dedication to his students and their growth is clear in everything he does.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Courses Section -->
+  <section id="courses" class="courses section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>MK Trading Academy</h2>
+        <p>Our Courses</p>
+      </div>
+      
+      <div class="courses-grid">
+        <div class="course-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="course-image">
+            <img src="/static/assets/img/course off kun new_enhanced.jpg" alt="Offline Batch">
+          </div>
+          <div class="course-content">
+            <h4>January 2k25 Offline Batch</h4>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdEXsXzeTSUIwOtLIGZdG8oqID1s6NgfkpG3lCU79RizMH9sg/viewform" class="btn btn-primary">Register Now</a>
+          </div>
+        </div>
+        
+        <div class="course-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="course-image">
+            <img src="/static/assets/img/course hindi new_enhanced.jpg" alt="Hindi Batch">
+          </div>
+          <div class="course-content">
+            <h4>January 2k25 Batch Hindi</h4>
+            <a href="https://kvvwpu.courses.store/594489" class="btn btn-primary">Register Now</a>
+          </div>
+        </div>
+        
+        <div class="course-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="course-image">
+            <img src="/static/assets/img/course mar muk new_enhanced.jpg" alt="Marathi Batch">
+          </div>
+          <div class="course-content">
+            <h4>January 2k25 Batch Marathi</h4>
+            <a href="https://kvvwpu.courses.store/594488" class="btn btn-primary">Register Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="services section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Quality Learning Experience</h2>
+        <p>Why Choose Us?</p>
+      </div>
+      
+      <div class="services-grid">
+        <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="icon">
+            <i class="fas fa-user-tie"></i>
+          </div>
+          <h3>Industry Specialists</h3>
+          <p>MK Trading Academy provides you the core skills and exact knowledge you need to become a successful trader under the mentorship of "Kunal Biradar".</p>
+        </div>
+        
+        <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="icon">
+            <i class="fas fa-laptop-code"></i>
+          </div>
+          <h3>90% Practical Training</h3>
+          <p>It aims that to set you on the path to becoming a successful trader independently with a system and contemporary skill set earned from experience.</p>
+        </div>
+        
+        <div class="service-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>100% Guaranteed Profits</h3>
+          <p>The program is structured in such a way that anyone having zero knowledge about the stock market can earn consistent profits from the stock market after the completion of this program.</p>
+        </div>
+        
+        <div class="service-card" data-aos="fade-up" data-aos-delay="400">
+          <div class="icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Regular Batches</h3>
+          <p>Best for students willing to be skilled in trading & investing with daily sessions for 2 months.</p>
+        </div>
+        
+        <div class="service-card" data-aos="fade-up" data-aos-delay="500">
+          <div class="icon">
+            <i class="fas fa-video"></i>
+          </div>
+          <h3>Live Batches</h3>
+          <p>Best for people willing to learn multiple skills at a time. Join live sessions in a day.</p>
+        </div>
+        
+        <div class="service-card" data-aos="fade-up" data-aos-delay="600">
+          <div class="icon">
+            <i class="fas fa-headset"></i>
+          </div>
+          <h3>6 Months Support</h3>
+          <p>MK Trading Academy provides 6 Months support for our learners to ensure their success in the market.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Section -->
+  <section class="cta">
+    <div class="container" data-aos="zoom-in">
+      <h3>It takes just a click to begin your journey</h3>
+      <p>Let's get started... click on the button below to download our Brochure</p>
+      <a href="/static/assets/img/MK Trading Academy Brochure.pdf" download class="btn btn-secondary">Download Brochure</a>
+    </div>
+  </section>
+
+  <!-- Portfolio/Academy Section -->
+  <section id="portfolio" class="portfolio section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Academy</h2>
+        <p>Insights</p>
+      </div>
+      
+      <ul class="portfolio-filters" data-aos="fade-up" data-aos-delay="100">
+        <li data-filter="*" class="filter-active">All</li>
+        <li data-filter=".filter-app">Batches</li>
+        <li data-filter=".filter-product">Events</li>
+      </ul>
+      
+      <div class="portfolio-grid">
+        <!-- Offline Batches -->
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="200">
+          <img src="/static/assets/img/masonry-portfolio/class1.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class1.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="300">
+          <img src="/static/assets/img/masonry-portfolio/class2.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class2.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="400">
+          <img src="/static/assets/img/masonry-portfolio/class3.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class3.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="500">
+          <img src="/static/assets/img/masonry-portfolio/class4.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class4.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="600">
+          <img src="/static/assets/img/masonry-portfolio/class5.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class5.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-app" data-aos="fade-up" data-aos-delay="700">
+          <img src="/static/assets/img/masonry-portfolio/class6.JPG" alt="Offline Batch">
+          <div class="portfolio-info">
+            <h4>Offline Batches</h4>
+            <a href="/static/assets/img/masonry-portfolio/class6.JPG" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Events -->
+        <div class="portfolio-item filter-product" data-aos="fade-up" data-aos-delay="800">
+          <img src="/static/assets/img/masonry-portfolio/eventone.jpg" alt="Event">
+          <div class="portfolio-info">
+            <h4>March 2023 Event</h4>
+            <a href="/static/assets/img/masonry-portfolio/eventone.jpg" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-product" data-aos="fade-up" data-aos-delay="900">
+          <img src="/static/assets/img/masonry-portfolio/eventtwo.jpg" alt="Event">
+          <div class="portfolio-info">
+            <h4>March 2023 Event</h4>
+            <a href="/static/assets/img/masonry-portfolio/eventtwo.jpg" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="portfolio-item filter-product" data-aos="fade-up" data-aos-delay="1000">
+          <img src="/static/assets/img/masonry-portfolio/eventthree.jpg" alt="Event">
+          <div class="portfolio-info">
+            <h4>March 2023 Event</h4>
+            <a href="/static/assets/img/masonry-portfolio/eventthree.jpg" data-gallery="portfolio-gallery" class="glightbox">
+              <i class="fas fa-plus"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section id="stats" class="stats section">
+    <div class="container">
+      <div class="stats-container">
+        <div class="stats-image" data-aos="fade-right" data-aos-delay="100">
+          <img src="/static/assets/img/DSC_0596.JPG" alt="MK Trading Family">
+        </div>
+        
+        <div class="stats-content" data-aos="fade-left" data-aos-delay="200">
+          <h3>MK Trading family</h3>
+          <p>We are always here for you...</p>
+          
+          <div class="stats-grid">
+            <div class="stats-item" data-aos="fade-up" data-aos-delay="300">
+              <i class="fas fa-smile"></i>
+              <div>
+                <div class="number" data-count="367">0</div>
+                <p><strong>Students supported</strong> and counting....</p>
+              </div>
+            </div>
+            
+            <div class="stats-item" data-aos="fade-up" data-aos-delay="400">
+              <i class="fas fa-book"></i>
+              <div>
+                <div class="number" data-count="82">0</div>
+                <p><strong>Sessions accomplished</strong> and adding up...</p>
+              </div>
+            </div>
+            
+            <div class="stats-item" data-aos="fade-up" data-aos-delay="500">
+              <i class="fas fa-headset"></i>
+              <div>
+                <div class="number" data-count="3571">0</div>
+                <p><strong>Hours Of Support</strong> to our learners</p>
+              </div>
+            </div>
+            
+            <div class="stats-item" data-aos="fade-up" data-aos-delay="600">
+              <i class="fas fa-star"></i>
+              <div>
+                <div class="number" data-count="4.6">0</div>
+                <p><strong>Google Rating</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section id="testimonials" class="testimonials section">
+    <div class="container" data-aos="fade-up">
+      <div class="section-title">
+        <h2>Client Testimonials</h2>
+        <p>What Our Students Say</p>
+      </div>
+      
+      <div class="swiper testimonial-slider">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <div class="testimonial-slide" data-aos="fade-up" data-aos-delay="100">
+              <div class="testimonial-image">
+                <img src="/static/assets/img/testimonials/g.png" alt="Gaurav Jadhav">
+              </div>
+              <h3>Gaurav Jadhav</h3>
+              <h4>Student</h4>
+              <div class="stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <i class="quote-icon fas fa-quote-left"></i>
+              <p>I can't imagine that such a person can give such deep knowledge in just 5000 rupees. I have seen that people do not get much knowledge even after paying 100000 fees. I love you sir from my heart. someone like you is needed in the market❤</p>
+              <i class="quote-icon fas fa-quote-right"></i>
+            </div>
+          </div>
+          
+          <div class="swiper-slide">
+            <div class="testimonial-slide" data-aos="fade-up" data-aos-delay="200">
+              <div class="testimonial-image">
+                <img src="/static/assets/img/testimonials/a.png" alt="Amol Limkar">
+              </div>
+              <h3>Amol Limkar</h3>
+              <h4>Student</h4>
+              <div class="stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <i class="quote-icon fas fa-quote-left"></i>
+              <p>I have been trading around 3 years but never got in profit or a proper training but after joining the MK trading class it was a life changing experience for me the skills Kunal sir has is at next level. 100% recommendations for this class.</p>
+              <i class="quote-icon fas fa-quote-right"></i>
+            </div>
+          </div>
+          
+          <div class="swiper-slide">
+            <div class="testimonial-slide" data-aos="fade-up" data-aos-delay="300">
+              <div class="testimonial-image">
+                <img src="/static/assets/img/testimonials/s.png" alt="Shubham Rasane">
+              </div>
+              <h3>Shubham Rasane</h3>
+              <h4>Student</h4>
+              <div class="stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <i class="quote-icon fas fa-quote-left"></i>
+              <p>Thanks MK Academy, for stock market course and I couldn't be more satisfied with my experience of learning from Kunal sir and mukund sir. The content was clear and easy to follow, covering everything I needed to get started. Thanks for everything.</p>
+              <i class="quote-icon fas fa-quote-right"></i>
+            </div>
+          </div>
+          
+          <div class="swiper-slide">
+            <div class="testimonial-slide" data-aos="fade-up" data-aos-delay="400">
+              <div class="testimonial-image">
+                <img src="/static/assets/img/testimonials/v.png" alt="Vaibhav Bachate">
+              </div>
+              <h3>Vaibhav Bachate</h3>
+              <h4>Student</h4>
+              <div class="stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+              </div>
+              <i class="quote-icon fas fa-quote-left"></i>
+              <p>Mk trading has transformed me from someone who was totally against trading into someone who has taken trading as a passion and as a serious profession. No words can express my gratitude for Mk trading who made this possible. THANK YOU!</p>
+              <i class="quote-icon fas fa-quote-right"></i>
+            </div>
+          </div>
+        </div>
+        
+        <div class="swiper-pagination"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section id="team" class="team section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>MK Trading Academy</h2>
+        <p>Our Team</p>
+      </div>
+      
+      <div class="team-grid">
+        <div class="team-member" data-aos="fade-up" data-aos-delay="100">
+          <div class="member-image">
+            <img src="/static/assets/img/team/Picsart_24-07-10_15-11-13-410.png" alt="Kunal Biradar">
+            <div class="member-social">
+              <a href="https://www.instagram.com/kunal_biradar_810/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Kunal Biradar</h4>
+            <span>Founder</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="200">
+          <div class="member-image">
+            <img src="/static/assets/img/team/Girish1.jpg" alt="Girish Bhagwat">
+            <div class="member-social">
+              <a href="https://www.instagram.com/greez1701/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Girish Bhagwat</h4>
+            <span>Co-founder</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="300">
+          <div class="member-image">
+            <img src="/static/assets/img/team/mukund.jpg" alt="Mukund Rasne">
+            <div class="member-social">
+              <a href="https://www.instagram.com/mukund_rasne1610/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Mukund Rasne</h4>
+            <span>Co-founder</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="400">
+          <div class="member-image">
+            <img src="/static/assets/img/team/rushi.jpg" alt="Rushikesh Devarase">
+            <div class="member-social">
+              <a href="https://www.instagram.com/rushikesh_devarase/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Rushikesh Devarase</h4>
+            <span>Co-founder</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="500">
+          <div class="member-image">
+            <img src="/static/assets/img/team/tejas.jpeg" alt="Tejas Chore">
+            <div class="member-social">
+              <a href="https://www.instagram.com/tejas.chore/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Tejas Chore</h4>
+            <span>Managing Director</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="600">
+          <div class="member-image">
+            <img src="/static/assets/img/team/vishal.jpg" alt="Vishal Payghan">
+            <div class="member-social">
+              <a href="https://www.instagram.com/vishal_payghan_/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Vishal Payghan</h4>
+            <span>CMO</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="700">
+          <div class="member-image">
+            <img src="/static/assets/img/team/warlock (1).jpg" alt="Devesh Dhotre">
+            <div class="member-social">
+              <a href="https://www.instagram.com/_devesh.017/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Devesh Dhotre</h4>
+            <span>CTO</span>
+          </div>
+        </div>
+        
+        <div class="team-member" data-aos="fade-up" data-aos-delay="800">
+          <div class="member-image">
+            <img src="/static/assets/img/team/gaurav (1) (1).jpg" alt="Jyotish Bansode">
+            <div class="member-social">
+              <a href="https://www.instagram.com/_gaurav.j_/"><i class="fab fa-instagram"></i></a>
+            </div>
+          </div>
+          <div class="member-info">
+            <h4>Gaurav Jadhav</h4>
+            <span>Director</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="contact section">
+    <div class="container">
+      <div class="section-title" data-aos="fade-up">
+        <h2>Get In Touch</h2>
+        <p>Contact Us</p>
+      </div>
+      
+      <div class="contact-container">
+        <div class="contact-info" data-aos="fade-up" data-aos-delay="100">
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div>
+              <h3>Address</h3>
+              <p>Office No, 407, Sr.No.72, Balaji enclave, Datta Nagar Rd, Sai Colony, Katraj, Pune, Maharashtra 411046</p>
+            </div>
+          </div>
+          
+          <div class="contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <div>
+              <h3>Call Us</h3>
+              <p>+91 9272120020</p>
+            </div>
+          </div>
+          
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <h3>Email Us</h3>
+              <p>mktrading810@gmail.com</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="contact-form" data-aos="fade-up" data-aos-delay="200">
+          <div class="map">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3784.756112404953!2d73.84991311174767!3d18.449379371270584!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2950af709a79b%3A0xc0b2012b9300d26a!2sMk%20trading%20academy!5e0!3m2!1sen!2sin!4v1718603210886!5m2!1sen!2sin" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+          
+          <h4>Ready to get started?</h4>
+          <p>Fill Up The Form to get a Call from our Academic Counselor</p>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSdEXsXzeTSUIwOtLIGZdG8oqID1s6NgfkpG3lCU79RizMH9sg/viewform" class="btn btn-primary">Go to Form</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="footer-container">
+          <div class="footer-about">
+            <a href="#" class="logo">
+              <img src="/static/assets/img/logomk.PNG" alt="MK Trading Academy">
+              <h1>MK Trading Academy</h1>
+            </a>
+            
+            <div class="footer-social">
+              <a href="https://www.youtube.com/@mktrading_academy"><i class="fab fa-youtube"></i></a>
+              <a href="https://www.instagram.com/mk_trading_academy/"><i class="fab fa-instagram"></i></a>
+              <a href="https://t.me/mktradingacademy"><i class="fab fa-telegram"></i></a>
+            </div>
+          </div>
+          
+          <div class="footer-links">
+            <h4>Explore</h4>
+            <ul>
+              <li><a href="#hero"><i class="fas fa-chevron-right"></i> Home</a></li>
+              <li><a href="#about"><i class="fas fa-chevron-right"></i> About us</a></li>
+              <li><a href="#services"><i class="fas fa-chevron-right"></i> Services</a></li>
+              <li><a href="#courses"><i class="fas fa-chevron-right"></i> Courses</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-links">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="{{ url_for('faq') }}"><i class="fas fa-chevron-right"></i> FAQs</a></li>
+              <li><a href="{{ url_for('policy') }}"><i class="fas fa-chevron-right"></i> Privacy Policy</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-newsletter">
+            <h4>Address</h4>
+            <p>Office No, 407, Sr.No.72, Balaji enclave,</p>
+            <p>Datta Nagar Rd, Sai Colony, Katraj, Pune, Maharashtra 411046</p>
+            <p class="mt-3"><strong>Phone:</strong> <span>+91 9272120020</span></p>
+            <p><strong>Email:</strong> <span>mktrading810@gmail.com</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <div class="container">
+        <p>© <span>Copyright</span> <strong>MK Trading Academy</strong> <span>All Rights Reserved</span></p>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <!-- Scroll Top Button -->
+  <a href="#" class="scroll-top">
+    <i class="fas fa-arrow-up"></i>
+  </a>
+
+  <!-- JavaScript Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/9.3.2/swiper-bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/noframework.waypoints.min.js"></script>
+
+  <!-- Main JavaScript -->
+  <script>
+    // Initialize AOS
+    AOS.init({
+      duration: 1000,
+      easing: 'ease-in-out',
+      once: true,
+      mirror: false
+    });
+    
+    // Preloader
+    window.addEventListener('load', function() {
+      document.querySelector('.preloader').style.display = 'none';
+    });
+    
+    // Scroll Top Button
+    window.addEventListener('scroll', function() {
+      const scrollTopBtn = document.querySelector('.scroll-top');
+      if (window.scrollY > 100) {
+        scrollTopBtn.classList.add('active');
+      } else {
+        scrollTopBtn.classList.remove('active');
+      }
+    });
+    
+    document.querySelector('.scroll-top').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+    
+    // Header Scroll Effect
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('.header');
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+    
+    // Mobile Navigation Toggle
+    document.querySelector('.mobile-nav-toggle').addEventListener('click', function() {
+      document.querySelector('.nav-menu').classList.toggle('active');
+      this.querySelector('i').classList.toggle('fa-bars');
+      this.querySelector('i').classList.toggle('fa-times');
+    });
+    
+    // Close mobile nav when clicking on a nav item
+    document.querySelectorAll('.nav-menu a').forEach(function(item) {
+      item.addEventListener('click', function() {
+        document.querySelector('.nav-menu').classList.remove('active');
+        document.querySelector('.mobile-nav-toggle i').classList.add('fa-bars');
+        document.querySelector('.mobile-nav-toggle i').classList.remove('fa-times');
+      });
+    });
+    
+    // Portfolio/Gallery Filters
+    document.querySelectorAll('.portfolio-filters li').forEach(function(filter) {
+      filter.addEventListener('click', function() {
+        document.querySelector('.portfolio-filters .filter-active').classList.remove('filter-active');
+        this.classList.add('filter-active');
+        
+        const filterValue = this.getAttribute('data-filter');
+        
+        document.querySelectorAll('.portfolio-item').forEach(function(item) {
+          if (filterValue === '*' || item.classList.contains(filterValue.substring(1))) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+    
+    // Initialize GLightbox
+    const lightbox = GLightbox({
+      selector: '.glightbox',
+      touchNavigation: true,
+      loop: true,
+      autoplayVideos: true
+    });
+    
+    // Initialize Hero Slider
+    const heroSlider = new Swiper('.hero-slider', {
+      speed: 800,
+      loop: true,
+      autoplay: {
+        delay: 5000,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: '.hero-pagination',
+        clickable: true
+      }
+    });
+    
+    // Initialize Client Slider
+    const clientSlider = new Swiper('.client-slider', {
+      slidesPerView: 2,
+      spaceBetween: 30,
+      loop: true,
+      speed: 800,
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false
+      },
+      breakpoints: {
+        640: {
+          slidesPerView: 3,
+          spaceBetween: 30
+        },
+        768: {
+          slidesPerView: 4,
+          spaceBetween: 40
+        },
+        1024: {
+          slidesPerView: 5,
+          spaceBetween: 50
+        }
+      }
+    });
+    
+    // Initialize Testimonial Slider
+    const testimonialSlider = new Swiper('.testimonial-slider', {
+      slidesPerView: 1,
+      spaceBetween: 30,
+      loop: true,
+      speed: 800,
+      autoplay: {
+        delay: 4000,
+        disableOnInteraction: false
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true
+      },
+      breakpoints: {
+        768: {
+          slidesPerView: 2,
+          spaceBetween: 30
+        },
+        1024: {
+          slidesPerView: 3,
+          spaceBetween: 40
+        }
+      }
+    });
+    
+    // Animated Counter for Stats
+    const countElements = document.querySelectorAll('.number');
+    const statsSection = document.querySelector('#stats');
+    
+    let counted = false;
+    window.addEventListener('scroll', function() {
+      const statsSectionTop = statsSection.getBoundingClientRect().top;
+      const windowHeight = window.innerHeight;
+      
+      if (statsSectionTop < windowHeight * 0.8 && !counted) {
+        countElements.forEach(function(countElement) {
+          const target = parseInt(countElement.getAttribute('data-count'));
+          let count = 0;
+          const duration = Math.floor(2000 / target);
+          
+          const counter = setInterval(function() {
+            count++;
+            countElement.innerText = count;
+            
+            if (count >= target) {
+              clearInterval(counter);
+            }
+          }, duration);
+        });
+        
+        counted = true;
+      }
+    });
+    
+    // Trading Animation
+    function createCandlestick() {
+      const tradingAnimation = document.querySelector('.trading-animation');
+      if (!tradingAnimation) return;
+      
+      const candlestick = document.createElement('div');
+      candlestick.classList.add('candlestick');
+      
+      // Random position
+      const posX = Math.random() * 100;
+      candlestick.style.left = `${posX}%`;
+      
+      // Random height and duration
+      const height = 20 + Math.random() * 100;
+      candlestick.style.setProperty('--height', `${height}px`);
+      
+      // Random type (positive/negative)
+      if (Math.random() > 0.5) {
+        candlestick.classList.add('negative');
+      }
+      
+      // Random animation duration
+      const duration = 2 + Math.random() * 4;
+      candlestick.style.animationDuration = `${duration}s`;
+      
+      tradingAnimation.appendChild(candlestick);
+      
+      // Remove after animation completes
+      setTimeout(() => {
+        candlestick.remove();
+      }, duration * 1000);
+    }
+    
+    // Create candlesticks periodically
+    setInterval(createCandlestick, 300);
+    
+    // WhatsApp Chat
+    function openChat() {
+      const whatsappUrl = 'https://web.whatsapp.com/send?phone=9272120020';
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        window.open(`whatsapp://send?phone=9272120020`, '_blank');
+      } else {
+        const width = 500;
+        const height = 600;
+        const left = (screen.width / 2) - (width / 2);
+        const top = (screen.height / 2) - (height / 2);
+        
+        window.open(whatsappUrl, 'WhatsAppChat', `width=${width},height=${height},top=${top},left=${left}`);
+      }
+    }
+    
+    // Active navigation link based on scroll position
+    window.addEventListener('scroll', function() {
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('.nav-menu a');
+      
+      let current = '';
+      
+      sections.forEach(function(section) {
+        const sectionTop = section.offsetTop - 100;
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+          current = section.getAttribute('id');
+        }
+      });
+      
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
