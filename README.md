@@ -97,4 +97,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact
 - **Developer:** Tejas K
 - **GitHub:** [tejask0512](https://github.com/tejask0512)
-- **Email:** [Your Email]
+- **Email:** [contact@tejaskamble.com]
