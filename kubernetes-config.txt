@@ -1,0 +1,17 @@
+# 1. First create the secrets
+kubectl create secret generic app-secrets \
+  --from-literal=razorpay-key-id='your_actual_key_id' \
+  --from-literal=razorpay-key-secret='your_actual_key_secret' \
+  --from-literal=news-api-key='your_actual_news_api_key'
+
+# 2. Replace YOUR_PROJECT_ID in the yaml file
+sed -i 's/YOUR_PROJECT_ID/your-actual-project-id/g' kubernetes.yaml
+
+# 3. Apply the kubernetes configuration
+kubectl apply -f kubernetes.yaml
+
+# 4. Check the status of your resources
+kubectl get deployment algo-trading-app
+kubectl get service algo-trading-app
+kubectl get pvc algo-trading-data-pvc
+kubectl get hpa algo-trading-app-hpa
