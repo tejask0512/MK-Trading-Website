@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - DEVELOPMENT_MODE=false
+      - RAZORPAY_KEY_ID=your_key_id
+      - RAZORPAY_KEY_SECRET=your_key_secret
+      - NEWS_API_KEY=your_news_api_key
+    volumes:
+      - ./data:/app/data
+    restart: always
