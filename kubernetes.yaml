@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algo-trading-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algo-trading-app
+  template:
+    metadata:
+      labels:
+        app: algo-trading-app
+    spec:
+      containers:
+      - name: algo-trading-app
+        image: gcr.io/YOUR_PROJECT_ID/algo-trading-app:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "production"
+        - name: DEVELOPMENT_MODE
+          value: "false"
+        - name: RAZORPAY_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: razorpay-key-id
+        - name: RAZORPAY_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: razorpay-key-secret
+        - name: NEWS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: news-api-key
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "0.5"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: algo-trading-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+  selector:
+    app: algo-trading-app
