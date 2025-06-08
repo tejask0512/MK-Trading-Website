@@ -1,13 +1,30 @@
-version: "3"
+version: '3'
+
 services:
   web:
-    image: tejask0512/mk-trading
     build: .
     ports:
-      - "8000:5000"
-    env_file:
-      - .env
+      - "8000:8000"
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=mktrading
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:13
     volumes:
-      - "./data:/app/data"
- 
- 
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mktrading
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
