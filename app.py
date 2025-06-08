@@ -183,17 +183,18 @@ def init_db():
     count = cursor.fetchone()[0]
     
     if count == 0:
-        # Insert default subscription plans
-        plans = [
-            ("Basic", "Access to basic features", 10000, 30, "BTClivechart, News Sentiment Analysis"),
-            ("Standard", "Full access with priority support", 27000, 90, "BTClivechart, News Sentiment Analysis, Priority Support"),
-            ("Premium", "Full access with premium features", 100000, 365, "BTClivechart, News Sentiment Analysis, Priority Support, Premium Updates")
-        ]
-        
-        cursor.executemany('''
-            INSERT INTO subscription_plans (name, description, price, duration_days, features)
-            VALUES (?, ?, ?, ?, ?)
-        ''', plans)
+    # Insert default subscription plans
+    plans = [
+        ("Basic", "Access to news and dashboard only", 5000, 30, "News Access, Dashboard Access"),
+        ("Premium Monthly", "Complete access with priority support", 10000, 30, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"),
+        ("Premium Quarterly", "Complete access with priority support for 3 months", 27000, 90, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"),
+        ("Premium Annual", "Complete access with priority support for 12 months", 100000, 365, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates")
+    ]
+    
+    cursor.executemany('''
+        INSERT INTO subscription_plans (name, description, price, duration_days, features)
+        VALUES (?, ?, ?, ?, ?)
+    ''', plans)
     
     conn.commit()
     conn.close()
