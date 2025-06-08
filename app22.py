@@ -15,18 +15,31 @@ import json
 from datetime import datetime, timedelta
 import uuid
 from dotenv import load_dotenv
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 import os
 
 load_dotenv() 
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# Secret key for session management
-app.secret_key = "Tejas@0514"
+
+DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"  # Set to False when going to production with Razorpay
+print(DEVELOPMENT_MODE)
 
 # Razorpay configuration (replace with your actual keys)
-RAZORPAY_KEY_ID = "rzp_test_your_key_id"
-RAZORPAY_KEY_SECRET = "your_key_secret"
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+app = Flask(__name__, template_folder="templates", static_folder="static")
+
+init_db()
+# Secret key for session management
+app.secret_key = "Tejas@0514"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "postgresql://user:password@localhost:5432/mktrading")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 # Absolute paths to scripts and data
@@ -95,7 +108,6 @@ def is_valid_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
 
-
 def is_valid_phone(phone):
     if len(phone)==10:
         return True
@@ -105,6 +117,7 @@ def is_valid_phone(phone):
 def init_db():
     conn = sqlite3.connect(USER_DB)
     cursor = conn.cursor()
+    session=db.session
     
     # Create users table
     cursor.execute('''
@@ -172,23 +185,36 @@ def init_db():
     count = cursor.fetchone()[0]
     
     if count == 0:
-        # Insert default subscription plans
-        plans = [
-            ("Basic", "Access to basic features", 499, 30, "BTClivechart, News Sentiment Analysis"),
-            ("Standard", "Full access with priority support", 999, 90, "BTClivechart, News Sentiment Analysis, Priority Support"),
-            ("Premium", "Full access with premium features", 1999, 365, "BTClivechart, News Sentiment Analysis, Priority Support, Premium Updates")
-        ]
-        
-        cursor.executemany('''
-            INSERT INTO subscription_plans (name, description, price, duration_days, features)
-            VALUES (?, ?, ?, ?, ?)
-        ''', plans)
+    # Insert default subscription plans
+    plans = [
+        ("Basic", "Access to news and dashboard only", 5000, 30, "News Access, Dashboard Access"),
+        ("Premium Monthly", "Complete access with priority support", 10000, 30, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"),
+        ("Premium Quarterly", "Complete access with priority support for 3 months", 27000, 90, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"),
+        ("Premium Annual", "Complete access with priority support for 12 months", 100000, 365, "News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates")
+    ]
+    
+    cursor.executemany('''
+        INSERT INTO subscription_plans (name, description, price, duration_days, features)
+        VALUES (?, ?, ?, ?, ?)
+    ''', plans)
+    
+
     
     conn.commit()
     conn.close()
 
 # Initialize database on startup
 init_db()
+
+
+@app.route('/test-db')
+def test_db():
+    try: 
+        from models.base import engine
+        with engine.connect() as connection:
+            return {"status":"success","message":"Database connection successful!"}
+    except Exception as e:
+        return {"status":"error","messsage":str(e)}
 
 # Background task to run scraper and sentiment analysis
 def run_scraper_and_sentiment_analysis():
@@ -232,17 +258,77 @@ def check_subscription(user_id):
         }
     return {"has_subscription": False}
 
-# Routes
+@app.route("/subscription/checkout/<int:plan_id>")
+@login_required
+def subscription_checkout(plan_id):
+    """Handle checkout process for subscription plans"""
+    try:
+        # Get plan details
+        conn = sqlite3.connect(USER_DB)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, description, price, duration_days FROM subscription_plans WHERE id = ?", (plan_id,))
+        plan = cursor.fetchone()
+        conn.close()
+        
+        if not plan:
+            flash("Selected plan not found", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        plan_data = {
+            "id": plan_id,
+            "name": plan[0],
+            "description": plan[1],
+            "price": plan[2],
+            "duration_days": plan[3]
+        }
+        
+        # Store plan_id in session for both modes
+        session['plan_id'] = plan_id
+        
+        # Development Mode - Use test payment page
+        if DEVELOPMENT_MODE:
+            return render_template('test_payment.html',
+                                  plan=plan_data,
+                                  user_name=session.get("user_name"),
+                                  user_email=session.get("user_email"))
+        
+        # Production Mode - Use Razorpay
+        else:
+            # Create Razorpay order
+            order_amount = int(plan_data["price"] * 100)  # Convert to paise
+            order_currency = 'INR'
+            receipt_id = f"sub_{session['user_id']}_{int(time.time())}"
+            
+            order_data = {
+                'amount': order_amount,
+                'currency': order_currency,
+                'receipt': receipt_id,
+                'payment_capture': 1
+            }
+            
+            order = razorpay_client.order.create(data=order_data)
+            session['razorpay_order_id'] = order['id']
+            
+            return render_template('payment.html',
+                                  plan=plan_data,
+                                  razorpay_key_id=RAZORPAY_KEY_ID,
+                                  order_id=order['id'],
+                                  amount=order_amount,
+                                  currency=order_currency,
+                                  user_name=session.get("user_name"),
+                                  user_email=session.get("user_email"))
+    
+    except Exception as e:
+        print(f"Error in checkout: {str(e)}")
+        flash(f"There was a problem processing your request. Please try again.", "error")
+        return redirect(url_for("subscription_plans"))
 
+# Routes
 @app.route('/')
 def home():
     # Check if user is already logged in
     if "user_id" in session:  
-        # Check if user has an active subscription
-        subscription_info = check_subscription(session["user_id"])
-        if not subscription_info["has_subscription"]:
-            return redirect(url_for('subscription_plans'))  # No subscription, go to subscription page
-        return redirect(url_for('mainpage'))  # User is logged in with subscription, go to dashboard
+        return redirect(url_for('mainpage'))  # Go directly to mainpage
     
     # Check if this is a new visitor or a returning visitor
     if session.get('visited_before'):
@@ -254,10 +340,24 @@ def home():
         # First-time visitor, go to registration
         return redirect(url_for('register'))
 
+@app.route("/mainpage")
+@login_required
+def mainpage():
+    # Get subscription info but don't redirect if not subscribed
+    subscription_info = check_subscription(session["user_id"])
+    
+    return render_template("mainpage.html", 
+                          user_name=session.get("user_name"), 
+                          current_user=session,
+                          subscription_info=subscription_info)
+
+
+
 @app.route("/dashboard")
 @login_required
+@subscription_required
 def dashboard():
-    return render_template("dashboard.html", user_name=session.get("user_name")) 
+    return render_template("dashboard.html", user_name=session.get("user_name"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -287,7 +387,7 @@ def login():
             subscription_info = check_subscription(user[0])
             if not subscription_info["has_subscription"]:
                 flash("Welcome back! Please subscribe to access our premium features", "info")
-                return redirect(url_for("subscription_plans"))
+                return redirect(url_for("subscription_menu"))
             
             # Redirect to dashboard
             next_page = request.args.get('next')
@@ -359,7 +459,7 @@ def register():
         session["user_email"] = email
         
         flash("Registration successful! Please subscribe to access our premium features.", "success")
-        return redirect(url_for("subscription_plans"))
+        return redirect(url_for("subscription_menu"))
     
     return render_template("register.html")
 
@@ -371,19 +471,7 @@ def logout():
     flash("You have been logged out", "info")
     return redirect(url_for("login"))
 
-@app.route("/mainpage")
-@login_required
-def mainpage():
-    # Check if user has an active subscription
-    subscription_info = check_subscription(session["user_id"])
-    if not subscription_info["has_subscription"]:
-        flash("Please subscribe to access our premium features", "info")
-        return redirect(url_for('subscription_plans'))
-    
-    return render_template("mainpage.html", 
-                          user_name=session.get("user_name"), 
-                          current_user=session,
-                          subscription_info=subscription_info)
+
 
 @app.route("/subscription/menu")
 @login_required
@@ -594,60 +682,92 @@ def subscription_plans():
                           active_subscription=active_subscription,
                           user_name=session.get("user_name"))
 
-@app.route("/subscription/checkout/<int:plan_id>")
-@login_required
-def subscription_checkout(plan_id):
-    conn = sqlite3.connect(USER_DB)
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, description, price, duration_days FROM subscription_plans WHERE id = ?", (plan_id,))
-    plan = cursor.fetchone()
-    conn.close()
+
     
-    if not plan:
-        flash("Selected plan not found", "error")
+@app.route("/subscription/test_payment", methods=["POST"])
+@login_required
+def test_payment():
+    """Process test payments (development mode only)"""
+    if not DEVELOPMENT_MODE:
         return redirect(url_for("subscription_plans"))
     
-    plan_data = {
-        "id": plan_id,
-        "name": plan[0],
-        "description": plan[1],
-        "price": plan[2],
-        "duration_days": plan[3]
-    }
-    
-    # Create Razorpay order
-    order_amount = int(plan[2] * 100)  # Convert to paise (smallest Indian currency unit)
-    order_currency = 'INR'
-    
-    # Create a unique receipt ID
-    receipt_id = f"sub_{session['user_id']}_{int(time.time())}"
-    
-    # Create Razorpay order
-    order_data = {
-        'amount': order_amount,
-        'currency': order_currency,
-        'receipt': receipt_id,
-        'payment_capture': 1  # Auto-capture payment
-    }
-    
     try:
-        order = razorpay_client.order.create(data=order_data)
+        # Get plan details
+        plan_id = session.get('plan_id')
+        if not plan_id:
+            flash("Plan information not found. Please try again.", "error")
+            return redirect(url_for("subscription_plans"))
         
-        # Store order info in session for verification later
-        session['razorpay_order_id'] = order['id']
-        session['plan_id'] = plan_id
+        conn = sqlite3.connect(USER_DB)
+        cursor = conn.cursor()
         
-        return render_template('payment.html',
-                              plan=plan_data,
-                              razorpay_key_id=RAZORPAY_KEY_ID,
-                              order_id=order['id'],
-                              amount=order_amount,
-                              currency=order_currency,
-                              user_name=session.get("user_name"),
-                              user_email=session.get("user_email"))
-    
+        # Get plan details
+        cursor.execute("SELECT name, price, duration_days FROM subscription_plans WHERE id = ?", (plan_id,))
+        plan_data = cursor.fetchone()
+        if not plan_data:
+            conn.close()
+            flash("Plan not found. Please try again.", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        plan_name, plan_price, plan_duration = plan_data
+        
+        # Generate mock payment details
+        mock_payment_id = f"test_{uuid.uuid4().hex[:10]}"
+        mock_order_id = f"order_{uuid.uuid4().hex[:10]}"
+        
+        # Record payment transaction
+        cursor.execute("""
+            INSERT INTO payment_transactions 
+            (user_id, razorpay_order_id, razorpay_payment_id, razorpay_signature, amount, currency, status, payment_method)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            session["user_id"],
+            mock_order_id,
+            mock_payment_id,
+            "test_signature",
+            plan_price,
+            "INR",
+            "captured",
+            "test_payment"
+        ))
+        
+        # Deactivate existing subscriptions
+        cursor.execute("""
+            UPDATE user_subscriptions
+            SET is_active = 0
+            WHERE user_id = ? AND is_active = 1
+        """, (session["user_id"],))
+        
+        # Calculate subscription dates
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=plan_duration)
+        
+        # Create new subscription
+        cursor.execute("""
+            INSERT INTO user_subscriptions 
+            (user_id, plan_id, transaction_id, payment_method, start_date, expiry_date, is_active)
+            VALUES (?, ?, ?, ?, ?, ?, 1)
+        """, (
+            session["user_id"],
+            plan_id,
+            mock_payment_id,
+            "test_payment",
+            start_date.strftime('%Y-%m-%d %H:%M:%S'),
+            expiry_date.strftime('%Y-%m-%d %H:%M:%S')
+        ))
+        
+        conn.commit()
+        conn.close()
+        
+        # Clear session data
+        session.pop('plan_id', None)
+        
+        flash("Test payment successful! Your subscription is now active.", "success")
+        return redirect(url_for("payment_success"))
+        
     except Exception as e:
-        flash(f"Error creating payment: {str(e)}", "error")
+        print(f"Error in test payment: {str(e)}")
+        flash("An error occurred during the test payment. Please try again.", "error")
         return redirect(url_for("subscription_plans"))
 
 @app.route("/subscription/process_payment", methods=["POST"])
@@ -851,4 +971,4 @@ def serve_static(path):
     return send_from_directory("static", path)
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=8000)

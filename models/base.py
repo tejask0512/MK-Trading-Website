@@ -1,15 +1,27 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from config.database import DATABASE_URL
+try:
+    # For SQLAlchemy 1.4+
+    from sqlalchemy.orm import declarative_base
+except ImportError:
+    # For older SQLAlchemy versions
+    from sqlalchemy.ext.declarative import declarative_base
 
-engine=create_engine(DATABASE_URL)
-SessionLocal=sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base=declarative_base()
+# Create database engine
+engine = create_engine(DATABASE_URL)
 
+# Create session factory (using more compatible syntax)
+Session = sessionmaker()
+Session.configure(bind=engine)
+SessionLocal = Session
+
+# Create base class for models
+Base = declarative_base()
+
+# Database session dependency
 def get_db():
-    db=SessionLocal()
+    db = SessionLocal()
     try:
-        yeild db
+        yield db
     finally:
         db.close()

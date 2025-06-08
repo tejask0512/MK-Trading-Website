@@ -1,0 +1,1 @@
+docker run --name local-postgres -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_DB=mktrading -p 5432:5432 -d postgres:13

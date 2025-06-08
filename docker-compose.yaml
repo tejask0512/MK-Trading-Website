@@ -1,13 +1,29 @@
-version: "3"
+version: '3.8'
+
 services:
   web:
-    image: tejask0512/mk-trading
     build: .
     ports:
-      - "8000:5000"
-    env_file:
-      - .env
+      - "5000:5000"
+    environment:
+      - FLASK_DEBUG=false
+      - DEVELOPMENT_MODE=false
+      - DATABASE_URL=postgresql://user:password@localhost:5432/mktrading
+    depends_on:
+      - db
     volumes:
-      - "./data:/app/data"
- 
- 
+      - ./data:/app/data
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=mktrading
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

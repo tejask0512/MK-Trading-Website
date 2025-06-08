@@ -1,5 +1,5 @@
-# Use Python 3.9 slim as base image
-FROM python:3.9-slim
+# Use Python 3.10 slim as base image
+FROM python:3.10-slim
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,6 @@ COPY . .
 
 # Create necessary directories if they don't exist
 RUN mkdir -p data
-
 RUN chmod 777 data
 
 # Run as non-root user for better security
@@ -39,6 +38,5 @@ USER appuser
 # Expose port
 EXPOSE 5000
 
-# Run gunicorn server
-
-CMD ["gunicorn", "--chdir", "mk-trading", "--bind", "0.0.0.0:5000", "app:app","120", "--workers", "3", "--threads", "3"]
+# Run gunicorn server with correct syntax
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "--workers", "3", "--threads", "3", "app:app"]
