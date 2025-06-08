@@ -101,37 +101,36 @@
         </div>
         {% endif %}
 
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            {% for plan in plans %}
-            <div class="col">
-                <div class="card plan-card {{ plan.name.lower() }} h-100">
-                    <div class="card-body text-center">
-                        <h2 class="card-title mb-4">{{ plan.name }}</h2>
-                        <div class="price mb-3">
-                            ₹{{ plan.price }}
-                            <span class="price-period">/ {{ plan.duration_days }} days</span>
-                        </div>
-                        <p class="card-text mb-4">{{ plan.description }}</p>
-                        <h5 class="mb-3">Features:</h5>
-                        <ul class="feature-list mb-4">
-                            {% for feature in plan.features %}
-                            <li><i class="fas fa-check me-2"></i>{{ feature.strip() }}</li>
-                            {% endfor %}
-                        </ul>
-                        <!-- Important: Make sure this link is correct and points to the checkout route -->
-                        <a href="/subscription/checkout/{{ plan.id }}" class="btn btn-light btn-subscribe">
-                            {% if active_subscription and active_subscription[0] == plan.id %}
-                                Extend Subscription
-                            {% else %}
-                                Subscribe Now
-                            {% endif %}
-                        </a>
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for plan in plans %}
+        <div class="col">
+            <div class="card plan-card {% if 'Premium' in plan.name %}premium{% elif plan.name == 'Basic' %}basic{% else %}standard{% endif %} h-100">
+                <div class="card-body text-center">
+                    <h2 class="card-title mb-4">{{ plan.name }}</h2>
+                    <div class="price mb-3">
+                        ₹{{ plan.price }}
+                        <span class="price-period">/ {{ plan.duration_days }} days</span>
                     </div>
+                    <p class="card-text mb-4">{{ plan.description }}</p>
+                    <h5 class="mb-3">Features:</h5>
+                    <ul class="feature-list mb-4">
+                        {% for feature in plan.features %}
+                        <li><i class="fas fa-check me-2"></i>{{ feature.strip() }}</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="/subscription/checkout/{{ plan.id }}" class="btn btn-light btn-subscribe">
+                        {% if active_subscription and active_subscription[0] == plan.id %}
+                            Extend Subscription
+                        {% else %}
+                            Subscribe Now
+                        {% endif %}
+                    </a>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
+</div>
 
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container">
