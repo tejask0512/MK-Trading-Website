@@ -1,0 +1,136 @@
+---
+# Deployment for the algo-trading application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algo-trading-app
+  labels:
+    app: algo-trading-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algo-trading-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: algo-trading-app
+    spec:
+      containers:
+      - name: algo-trading-app
+        image: gcr.io/YOUR_PROJECT_ID/algo-trading-app:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: FLASK_APP
+          value: "app.py"
+        - name: FLASK_ENV
+          value: "production"
+        - name: DEVELOPMENT_MODE
+          value: "false"
+        # Secret references
+        - name: RAZORPAY_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: razorpay-key-id
+        - name: RAZORPAY_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: razorpay-key-secret
+        - name: NEWS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: news-api-key
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: data-volume
+          mountPath: /app/data
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: algo-trading-data-pvc
+
+---
+# Service to expose the application
+apiVersion: v1
+kind: Service
+metadata:
+  name: algo-trading-app
+  labels:
+    app: algo-trading-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: algo-trading-app
+
+---
+# Persistent Volume Claim for data storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: algo-trading-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+
+---
+# Horizontal Pod Autoscaler for scaling based on CPU usage
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: algo-trading-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: algo-trading-app
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300

@@ -114,7 +114,7 @@
             gap: 40px;
             width: 100%;
         }
-
+        
         .tradingview-widget-container {
             margin-bottom: 20px;
         }
@@ -541,6 +541,35 @@
             animation: pulse 1.5s infinite;
         }
         
+        /* Chart Control Panel */
+        .chart-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .chart-controls button {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chart-controls button:hover {
+            background: #f0f0f0;
+        }
+        
         /* Fullscreen button */
         .fullscreen-btn {
             position: absolute;
@@ -739,18 +768,27 @@
                     
                     <!-- Chart containers for different timeframes -->
                     <div id="chart-container-5m" class="chart-container active">
+                        <div class="chart-controls">
+                            <button id="reset-zoom-5m" title="Reset Zoom"><i class="fas fa-expand-arrows-alt"></i></button>
+                        </div>
                         <button id="fullscreen-btn-5m" class="fullscreen-btn" title="Toggle Fullscreen">
                             <i class="fas fa-expand"></i>
                         </button>
                     </div>
                     
                     <div id="chart-container-15m" class="chart-container">
+                        <div class="chart-controls">
+                            <button id="reset-zoom-15m" title="Reset Zoom"><i class="fas fa-expand-arrows-alt"></i></button>
+                        </div>
                         <button id="fullscreen-btn-15m" class="fullscreen-btn" title="Toggle Fullscreen">
                             <i class="fas fa-expand"></i>
                         </button>
                     </div>
                     
                     <div id="chart-container-1h" class="chart-container">
+                        <div class="chart-controls">
+                            <button id="reset-zoom-1h" title="Reset Zoom"><i class="fas fa-expand-arrows-alt"></i></button>
+                        </div>
                         <button id="fullscreen-btn-1h" class="fullscreen-btn" title="Toggle Fullscreen">
                             <i class="fas fa-expand"></i>
                         </button>
@@ -911,6 +949,53 @@
         let trendPercentage = 1.0;
         let retracePercentage = 0.5;
         
+        // Add to the top of your script section
+        // Detect if running in headless/background mode
+        const isBackgroundMode = navigator.userAgent.includes('HeadlessChrome');
+        if (isBackgroundMode) {
+            console.log('Running in background mode');
+    
+        // Optimize for background operation
+        document.addEventListener('DOMContentLoaded', function() {
+        // Reduce rendering frequency to save resources
+            setInterval(() => {
+                console.log('Background mode heartbeat');
+            
+                // Check WebSocket connections
+                timeframes.forEach(timeframe => {
+                    if (!websockets[timeframe] || 
+                        websockets[timeframe].readyState !== WebSocket.OPEN) {
+                        console.log(`Reconnecting ${timeframe} in background mode`);
+                        connectTimeframe(timeframe);
+                    }
+                });
+            
+                // Log status
+                const status = {
+                    activeTimeframe,
+                    candles: candleData[activeTimeframe].length,
+                    lastSignal: trendData[activeTimeframe].lastSignal,
+                    lastPrice: candleData[activeTimeframe].length > 0 ? 
+                        candleData[activeTimeframe][candleData[activeTimeframe].length - 1].close : null
+                };
+            
+                console.log('Chart status:', status);
+            }, 60000); // Check every minute
+            });
+        };
+
+
+        // Default chart options - consistent across all timeframes
+        const defaultChartOptions = {
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: false,
+                borderColor: '#d1d4dc',
+                barSpacing: 20, // Wider spacing to show fewer candles (zoomed out view)
+                minBarSpacing: 10, // Minimum spacing when zooming in
+            },
+        };
+        
         // Strategy data for each timeframe
         const trendData = {
             '5m': {
@@ -964,7 +1049,38 @@
             setupEventListeners();
             connectToAllTimeframes();
             showNotification('Welcome to BTC/USDT Live Trading Chart', 'info');
+            
+            // Initialize all chart containers to be visible momentarily for proper sizing
+            initAllChartContainers();
         });
+        
+        // Initialize all chart containers to ensure proper sizing
+        function initAllChartContainers() {
+            // Make all containers visible temporarily
+            timeframes.forEach(timeframe => {
+                const container = document.getElementById(`chart-container-${timeframe}`);
+                container.style.display = 'block';
+            });
+            
+            // Force a reflow/repaint
+            setTimeout(() => {
+                // Resize all charts to ensure they have proper dimensions
+                timeframes.forEach(timeframe => {
+                    if (charts[timeframe]) {
+                        charts[timeframe].applyOptions({
+                            width: document.getElementById(`chart-container-${timeframe}`).clientWidth,
+                            height: document.getElementById(`chart-container-${timeframe}`).clientHeight
+                        });
+                    }
+                });
+                
+                // Reset display to only show active timeframe
+                timeframes.forEach(timeframe => {
+                    const container = document.getElementById(`chart-container-${timeframe}`);
+                    container.style.display = timeframe === activeTimeframe ? 'block' : 'none';
+                });
+            }, 100);
+        }
         
         // Initialize all charts
         function initCharts() {
@@ -972,8 +1088,8 @@
                 const chartContainer = document.getElementById(`chart-container-${timeframe}`);
                 
                 charts[timeframe] = LightweightCharts.createChart(chartContainer, {
-                    width: chartContainer.clientWidth,
-                    height: chartContainer.clientHeight,
+                    width: chartContainer.clientWidth || 800, // Provide fallback size
+                    height: chartContainer.clientHeight || 500, // Provide fallback size
                     layout: {
                         backgroundColor: '#ffffff',
                         textColor: '#333333',
@@ -988,17 +1104,15 @@
                         mode: LightweightCharts.CrosshairMode.Normal,
                     },
                     timeScale: {
-                        timeVisible: true,
-                        secondsVisible: false,
-                        borderColor: '#d1d4dc',
-                        barSpacing: 10,
+                        ...defaultChartOptions.timeScale
                     },
                     rightPriceScale: {
                         borderColor: '#d1d4dc',
                         scaleMargins: {
                             top: 0.1,
                             bottom: 0.1,
-                        }
+                        },
+                        visible: true,
                     },
                     handleScroll: {
                         mouseWheel: true,
@@ -1024,6 +1138,20 @@
             showNotification('All charts initialized successfully', 'success');
         }
         
+        // Reset chart zoom to default view
+        function resetChartZoom(timeframe) {
+            if (!charts[timeframe]) return;
+            
+            // Apply consistent bar spacing for initial view
+            charts[timeframe].applyOptions({
+                timeScale: {
+                    ...defaultChartOptions.timeScale
+                }
+            });
+            
+            // No fitContent() call here - this will let the chart maintain its default view
+        }
+        
         // Setup event listeners
         function setupEventListeners() {
             // Setup timeframe button listeners
@@ -1031,6 +1159,14 @@
                 button.addEventListener('click', function() {
                     const timeframe = this.dataset.timeframe;
                     switchTimeframe(timeframe);
+                });
+            });
+            
+            // Setup reset zoom button listeners
+            timeframes.forEach(timeframe => {
+                document.getElementById(`reset-zoom-${timeframe}`).addEventListener('click', function() {
+                    resetChartZoom(timeframe);
+                    showNotification(`Zoom reset for ${timeframe} chart`, 'info');
                 });
             });
             
@@ -1104,10 +1240,14 @@
             window.addEventListener('resize', function() {
                 timeframes.forEach(timeframe => {
                     if (charts[timeframe]) {
-                        charts[timeframe].applyOptions({
-                            width: document.getElementById(`chart-container-${timeframe}`).clientWidth,
-                            height: document.getElementById(`chart-container-${timeframe}`).clientHeight
-                        });
+                        const container = document.getElementById(`chart-container-${timeframe}`);
+                        // Only resize visible charts
+                        if (container.style.display !== 'none') {
+                            charts[timeframe].applyOptions({
+                                width: container.clientWidth,
+                                height: container.clientHeight
+                            });
+                        }
                     }
                 });
             });
@@ -1115,7 +1255,7 @@
         
         // Switch between timeframes
         function switchTimeframe(timeframe) {
-            if (!timeframes.includes(timeframe)) return;
+            if (!timeframes.includes(timeframe) || timeframe === activeTimeframe) return;
             
             // Update active timeframe
             activeTimeframe = timeframe;
@@ -1129,10 +1269,29 @@
             // Hide all chart containers
             document.querySelectorAll('.chart-container').forEach(container => {
                 container.classList.remove('active');
+                container.style.display = 'none';
             });
             
             // Show the selected chart container
-            document.getElementById(`chart-container-${timeframe}`).classList.add('active');
+            const selectedContainer = document.getElementById(`chart-container-${timeframe}`);
+            selectedContainer.classList.add('active');
+            selectedContainer.style.display = 'block';
+            
+            // Important: Resize the chart after making the container visible
+            if (charts[timeframe]) {
+                charts[timeframe].applyOptions({
+                    width: selectedContainer.clientWidth,
+                    height: selectedContainer.clientHeight,
+                    timeScale: {
+                        ...defaultChartOptions.timeScale
+                    }
+                });
+                
+                // We're deliberately NOT calling fitContent() here to maintain the default zoom level
+                
+                // Force a resize event to ensure chart renders properly at the correct size
+                window.dispatchEvent(new Event('resize'));
+            }
             
             // Update timeframe display
             document.getElementById('timeframeDisplay').innerHTML = `<i class="fas fa-clock"></i> ${timeframe}`;
@@ -1156,6 +1315,12 @@
             } else {
                 signalDisplay.innerHTML = '<i class="fas fa-signal"></i> No Signal';
                 signalDisplay.className = 'signal-display';
+            }
+            
+            // Update price display for the active timeframe
+            if (candleData[timeframe].length > 0) {
+                const lastCandle = candleData[timeframe][candleData[timeframe].length - 1];
+                document.getElementById('priceDisplay').innerHTML = `<i class="fas fa-tag"></i> Price: ${lastCandle.close.toFixed(2)}`;
             }
             
             showNotification(`Switched to ${timeframe} timeframe`, 'info');
@@ -1222,13 +1387,28 @@
             // Hide all chart containers first
             document.querySelectorAll('.chart-container').forEach(container => {
                 container.classList.remove('active');
+                container.style.display = 'none';
             });
             
             tradingViewWidget.classList.remove('active');
+            tradingViewWidget.style.display = 'none';
             
             if (type === 'custom') {
                 // Show currently active timeframe chart
-                document.getElementById(`chart-container-${activeTimeframe}`).classList.add('active');
+                const activeContainer = document.getElementById(`chart-container-${activeTimeframe}`);
+                activeContainer.classList.add('active');
+                activeContainer.style.display = 'block';
+                
+                // Resize the chart after making the container visible
+                if (charts[activeTimeframe]) {
+                    charts[activeTimeframe].applyOptions({
+                        width: activeContainer.clientWidth,
+                        height: activeContainer.clientHeight
+                    });
+                    
+                    // Force a resize event
+                    window.dispatchEvent(new Event('resize'));
+                }
                 
                 customChartBtn.classList.add('active');
                 tradingViewChartBtn.classList.remove('active');
@@ -1242,6 +1422,7 @@
                 showNotification('Switched to Custom Chart', 'info');
             } else {
                 tradingViewWidget.classList.add('active');
+                tradingViewWidget.style.display = 'block';
                 
                 customChartBtn.classList.remove('active');
                 tradingViewChartBtn.classList.add('active');
@@ -1347,6 +1528,13 @@
                     showNotification(`WebSocket Error (${timeframe}): ${error.message || 'Unknown error'}`, 'error');
                     console.error(`WebSocket Error (${timeframe}):`, error);
                     
+                    // Update connection status
+                    if (timeframe === activeTimeframe) {
+                        const connectionStatus = document.getElementById('connection-status');
+                        connectionStatus.className = 'connection-label disconnected';
+                        connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Disconnected';
+                    }
+                    
                     // Try to reconnect after a delay
                     setTimeout(() => {
                         if (websockets[timeframe].readyState === WebSocket.CLOSED) {
@@ -1358,6 +1546,13 @@
                 
                 websockets[timeframe].onclose = function() {
                     showNotification(`WebSocket connection closed for ${timeframe}`, 'warning');
+                    
+                    // Update connection status
+                    if (timeframe === activeTimeframe) {
+                        const connectionStatus = document.getElementById('connection-status');
+                        connectionStatus.className = 'connection-label disconnected';
+                        connectionStatus.innerHTML = '<i class="fas fa-times-circle"></i> Disconnected';
+                    }
                     
                     // Try to reconnect after a delay
                     setTimeout(() => {
@@ -1521,11 +1716,6 @@
                     
                     markers[timeframe].push(marker);
                     candleSeries[timeframe].setMarkers(markers[timeframe]);
-                }
-                
-                // Fit content to view occasionally
-                if (candleData[timeframe].length % 20 === 0) {
-                    charts[timeframe].timeScale().fitContent();
                 }
                 
             } catch (error) {

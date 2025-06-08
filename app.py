@@ -15,13 +15,19 @@ import json
 from datetime import datetime, timedelta
 import uuid
 from dotenv import load_dotenv
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 import os
 
 load_dotenv() 
 
-# Add this near the top of your app.py
 
-DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "false").lower() == "false"  # Set to False when going to production with Razorpay
+
+DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"  # Set to False when going to production with Razorpay
+print(DEVELOPMENT_MODE)
+
+# Razorpay configuration (replace with your actual keys)
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
@@ -29,10 +35,10 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Secret key for session management
 app.secret_key = "Tejas@0514"
-
-# Razorpay configuration (replace with your actual keys)
-RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_your_key_id")
-RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "your_key_secret")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "postgresql://user:password@localhost:5432/mktrading")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+engine=create_engine(DATA)
+db = SQLAlchemy(app)
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 # Absolute paths to scripts and data
@@ -179,9 +185,9 @@ def init_db():
     if count == 0:
         # Insert default subscription plans
         plans = [
-            ("Basic", "Access to basic features", 499, 30, "BTClivechart, News Sentiment Analysis"),
-            ("Standard", "Full access with priority support", 999, 90, "BTClivechart, News Sentiment Analysis, Priority Support"),
-            ("Premium", "Full access with premium features", 1999, 365, "BTClivechart, News Sentiment Analysis, Priority Support, Premium Updates")
+            ("Basic", "Access to basic features", 10000, 30, "BTClivechart, News Sentiment Analysis"),
+            ("Standard", "Full access with priority support", 27000, 90, "BTClivechart, News Sentiment Analysis, Priority Support"),
+            ("Premium", "Full access with premium features", 100000, 365, "BTClivechart, News Sentiment Analysis, Priority Support, Premium Updates")
         ]
         
         cursor.executemany('''

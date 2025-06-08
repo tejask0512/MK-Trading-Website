@@ -21,7 +21,7 @@ flask-caching
 werkzeug==2.3.8
 gunicorn==20.1.0
 python-dotenv==0.19.2
-
+dotenv
 # Web scraping
 requests==2.28.2
 beautifulsoup4==4.11.2
@@ -35,6 +35,12 @@ google-cloud-storage>=1.44.0
 
 #payment gateway
 razorpay
+
+#deployment
+Flask
+Flask-SQLAlchemy
+SQLAlchemy==2.0.0
+psycopg2-binary==2.9.5
 
 # Editable install — only include if you're building a local package
 # -e .

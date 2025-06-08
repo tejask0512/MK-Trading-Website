@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
 from datasets import load_dataset
 import torch
