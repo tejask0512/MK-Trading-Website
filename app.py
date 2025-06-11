@@ -1,33 +1,10 @@
-from flask import Flask, render_template, jsonify, send_from_directory, request, redirect, url_for, session, flash
-import subprocess
-import pandas as pd
-import threading
-import time
 import os
-import re
-import hashlib
-import secrets
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-import razorpay
-import json
-from datetime import datetime, timedelta
-import uuid
-from dotenv import load_dotenv
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError
-from config.database import db
-from sqlalchemy.exc import SQLAlchemyError
-# Add these imports if missing
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
-from sqlalchemy.sql import func
-from sqlalchemy import text  # if you're using raw SQL queries
-import logging
 import sys
-load_dotenv() 
+import logging
+import time
+from datetime import datetime, timedelta
 
-# Configure logging
+# Configure logging first
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -38,7 +15,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
 
+# Flask and extensions
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+
+# Other imports
+import subprocess
+import pandas as pd
+import threading
+import re
+import razorpay
+import uuid
+from sqlalchemy import text, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy.exc import SQLAlchemyError
 
 # Environment configuration
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"
@@ -48,46 +43,133 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Secret key for session management
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY","")
 
 # Database configuration with proper error handling
 def get_database_url():
-    """Get database URL with fallback options"""
+    """Get database URL with proper error handling"""
     database_url = os.environ.get("DATABASE_URL")
     
     if database_url:
-        # Handle postgres:// vs postgresql:// URL schemes
         if database_url.startswith('postgres://'):
             database_url = database_url.replace('postgres://', 'postgresql://', 1)
         return database_url
     
-    # Fallback configuration for Docker environment
-    db_host = os.getenv("DB_HOST", "db")
+    # Fallback for Docker
+    db_host = os.getenv("DB_HOST", "postgres")  # Changed from "db" to "postgres"
     db_port = os.getenv("DB_PORT", "5432")
     db_name = os.getenv("DB_NAME", "mktrading")
-    db_user = os.getenv("DB_USER", "postgres")
-    db_password = os.getenv("DB_PASSWORD", "postgres")
+    db_user = os.getenv("DB_USER", "mktrading_user")  # Match docker-compose
+    db_password = os.getenv("DB_PASSWORD", "mktrading_secure_password_2024")
     
     return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
 
-# PostgreSQL Database Configuration
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True,
     'pool_recycle': 300,
+    'pool_timeout': 20,
     'connect_args': {
-        'connect_timeout': 30,
+        'connect_timeout': 10,
         'options': '-c timezone=UTC'
     }
 }
 
-# Initialize SQLAlchemy
+
+# Initialize database
 db = SQLAlchemy()
 db.init_app(app)
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+def create_app():
+    app = Flask(__name__, template_folder="templates", static_folder="static")
+    app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_timeout': 20,
+        'connect_args': {'connect_timeout': 10, 'options': '-c timezone=UTC'}
+    }
+    
+    # Initialize database ONLY ONCE
+    db = SQLAlchemy(app)
+    
+    # Move all your models, routes, and functions INSIDE this function
+    # ... (all your existing code)
+    
+    return app, db  # Return both app and db
+
+# Database connection with retry logic
+def wait_for_database(max_retries=30, delay=2):
+    """Wait for database with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                db.session.execute(text('SELECT 1'))
+                db.session.commit()
+            logger.info("Database connection successful")
+            return True
+        except Exception as e:
+            logger.warning(f"DB connection attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(min(delay * (2 ** attempt), 30))  # Exponential backoff, max 30s
+            else:
+                logger.error("All database connection attempts failed")
+                raise e
+    return False
+def init_db():
+    """Initialize database with proper error handling"""
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            wait_for_database()
+            
+            with app.app_context():
+                db.create_all()
+                logger.info("Database tables created successfully")
+                
+                # Initialize subscription plans if they don't exist
+                if SubscriptionPlan.query.count() == 0:
+                    plans = [
+                        SubscriptionPlan(name="Basic", description="Access to news and dashboard only", 
+                                       price=5000, duration_days=30, features="News Access, Dashboard Access"),
+                        SubscriptionPlan(name="Premium Monthly", description="Complete access with priority support", 
+                                       price=10000, duration_days=30, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support"),
+                        SubscriptionPlan(name="Premium Quarterly", description="Complete access for 3 months", 
+                                       price=27000, duration_days=90, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support"),
+                        SubscriptionPlan(name="Premium Annual", description="Complete access for 12 months", 
+                                       price=100000, duration_days=365, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support")
+                    ]
+                    
+                    for plan in plans:
+                        db.session.add(plan)
+                    db.session.commit()
+                    logger.info("Subscription plans initialized")
+                
+                return True
+                
+        except Exception as e:
+            logger.error(f"Database initialization attempt {attempt + 1} failed: {e}")
+            if attempt < max_attempts - 1:
+                time.sleep(5)
+            else:
+                if DEVELOPMENT_MODE:
+                    raise e
+                else:
+                    logger.warning("Database init failed, continuing in production mode")
+                    return False
+    return False
 
 # Absolute paths to scripts and data
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -162,86 +244,6 @@ class PaymentTransaction(db.Model):
     def __repr__(self):
         return f'<PaymentTransaction {self.razorpay_payment_id}>'
 
-# Database connection with retry logic
-def wait_for_database(max_retries=30, delay=2):
-    """Wait for database to be ready with retry logic"""
-    for attempt in range(max_retries):
-        try:
-            with app.app_context():
-                # Try to execute a simple query
-                db.session.execute(text('SELECT 1'))
-                db.session.commit()
-            logger.info("Database connection established successfully")
-            return True
-        except Exception as e:
-            logger.warning(f"Database connection attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(delay)
-            else:
-                logger.error("Failed to connect to database after all retries")
-                raise e
-    return False
-
-def init_db():
-    """Initialize database with proper error handling and retry logic"""
-    try:
-        # Wait for database to be ready
-        wait_for_database()
-        
-        with app.app_context():
-            # Create all tables
-            db.create_all()
-            logger.info("Database tables created successfully")
-            
-            # Check if subscription plans exist
-            if SubscriptionPlan.query.count() == 0:
-                # Add subscription plans
-                plans = [
-                    SubscriptionPlan(
-                        name="Basic",
-                        description="Access to news and dashboard only",
-                        price=5000,
-                        duration_days=30,
-                        features="News Access, Dashboard Access"
-                    ),
-                    SubscriptionPlan(
-                        name="Premium Monthly",
-                        description="Complete access with priority support",
-                        price=10000,
-                        duration_days=30,
-                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-                    ),
-                    SubscriptionPlan(
-                        name="Premium Quarterly",
-                        description="Complete access with priority support for 3 months",
-                        price=27000,
-                        duration_days=90,
-                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-                    ),
-                    SubscriptionPlan(
-                        name="Premium Annual",
-                        description="Complete access with priority support for 12 months",
-                        price=100000,
-                        duration_days=365,
-                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-                    )
-                ]
-                
-                for plan in plans:
-                    db.session.add(plan)
-                
-                db.session.commit()
-                logger.info("Database initialized with subscription plans")
-            else:
-                logger.info("Subscription plans already exist")
-                
-    except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
-        # Don't raise the exception in production to allow the app to start
-        if not DEVELOPMENT_MODE:
-            logger.warning("Database initialization failed, but continuing in production mode")
-        else:
-            raise e
         
 # User authentication decorator
 def login_required(f):
@@ -378,7 +380,18 @@ def health_check():
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return jsonify({"status": "unhealthy", "error": str(e),'timestamp': datetime.now().isoformat()}), 500
-
+    
+@app.route('/readiness')
+def readiness_check():
+    """Readiness probe for Kubernetes/container orchestration"""
+    try:
+        # More comprehensive checks
+        db.session.execute('SELECT 1')
+        # Add other checks like external APIs, file system, etc.
+        return {"status": "ready", "timestamp": datetime.utcnow().isoformat()}, 200
+    except Exception as e:
+        return {"status": "not ready", "error": str(e)}, 503
+    
 # Routes
 @app.route('/')
 def home():
@@ -1083,5 +1096,23 @@ def migrate_db():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
+
+def create_application():
+    app, db = create_app()
+    
+    # Initialize database
+    with app.app_context():
+        try:
+            init_db()  # Call your init_db function here
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+    
+    return app
+
+# For gunicorn
+application = create_application()
+
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app = create_application()
+    app.run(debug=DEVELOPMENT_MODE, host="0.0.0.0", port=5000)
