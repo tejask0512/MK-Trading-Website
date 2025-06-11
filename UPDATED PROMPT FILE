@@ -393,5 +393,75 @@ WEB_PORT=5000
 DB_PORT=5432
 
 
-
+-------------------------------------------------------------------------------------------------------------------
+error:
+mktrading_web  | /usr/local/lib/python3.9/site-packages/gunicorn/util.py:25: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+mktrading_web  |   import pkg_resources
+mktrading_web  | [2025-06-11 06:52:52 +0000] [1] [INFO] Starting gunicorn 20.1.0
+mktrading_web  | [2025-06-11 06:52:52 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+mktrading_web  | [2025-06-11 06:52:52 +0000] [1] [INFO] Using worker: sync
+mktrading_web  | [2025-06-11 06:52:52 +0000] [7] [INFO] Booting worker with pid: 7
+mktrading_web  | [2025-06-11 06:52:52 +0000] [8] [INFO] Booting worker with pid: 8
+mktrading_web  | 'FLASK_ENV' is deprecated and will not be used in Flask 2.3. Use 'FLASK_DEBUG' instead.
+mktrading_web  | 'FLASK_ENV' is deprecated and will not be used in Flask 2.3. Use 'FLASK_DEBUG' instead.
+mktrading_web  | [2025-06-11 06:53:00 +0000] [7] [ERROR] Exception in worker process
+mktrading_web  | Traceback (most recent call last):
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/arbiter.py", line 589, in spawn_worker
+mktrading_web  |     worker.init_process()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py", line 134, in init_process
+mktrading_web  |     self.load_wsgi()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+mktrading_web  |     self.wsgi = self.app.wsgi()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/base.py", line 67, in wsgi
+mktrading_web  |     self.callable = self.load()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+mktrading_web  |     return self.load_wsgiapp()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+mktrading_web  |     return util.import_app(self.app_uri)
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/util.py", line 359, in import_app
+mktrading_web  |     mod = importlib.import_module(module)
+mktrading_web  |   File "/usr/local/lib/python3.9/importlib/__init__.py", line 127, in import_module
+mktrading_web  |     return _bootstrap._gcd_import(name[level:], package, level)
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+mktrading_web  |   File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+mktrading_web  |   File "/app/app.py", line 84, in <module>
+mktrading_web  |     db.init_app(app)
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/flask_sqlalchemy/extension.py", line 253, in init_app
+mktrading_web  |     raise RuntimeError(
+mktrading_web  | RuntimeError: A 'SQLAlchemy' instance has already been registered on this Flask app. Import and use that instance instead.       
+mktrading_web  | [2025-06-11 06:53:00 +0000] [7] [INFO] Worker exiting (pid: 7)
+mktrading_web  | [2025-06-11 06:53:00 +0000] [8] [ERROR] Exception in worker process
+mktrading_web  | Traceback (most recent call last):
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/arbiter.py", line 589, in spawn_worker
+mktrading_web  |     worker.init_process()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py", line 134, in init_process
+mktrading_web  |     self.load_wsgi()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/workers/base.py", line 146, in load_wsgi
+mktrading_web  |     self.wsgi = self.app.wsgi()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/base.py", line 67, in wsgi
+mktrading_web  |     self.callable = self.load()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 58, in load
+mktrading_web  |     return self.load_wsgiapp()
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/app/wsgiapp.py", line 48, in load_wsgiapp
+mktrading_web  |     return util.import_app(self.app_uri)
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/gunicorn/util.py", line 359, in import_app
+mktrading_web  |     mod = importlib.import_module(module)
+mktrading_web  |   File "/usr/local/lib/python3.9/importlib/__init__.py", line 127, in import_module
+mktrading_web  |     return _bootstrap._gcd_import(name[level:], package, level)
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+mktrading_web  |   File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+mktrading_web  |   File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+mktrading_web  |   File "/app/app.py", line 84, in <module>
+mktrading_web  |     db.init_app(app)
+mktrading_web  |   File "/usr/local/lib/python3.9/site-packages/flask_sqlalchemy/extension.py", line 253, in init_app
+mktrading_web  |     raise RuntimeError(
+mktrading_web  | RuntimeError: A 'SQLAlchemy' instance has already been registered on this Flask app. Import and use that instance instead.       
+mktrading_web  | [2025-06-11 06:53:00 +0000] [8] [INFO] Worker exiting (pid: 8)
 
