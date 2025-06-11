@@ -1,0 +1,1259 @@
+app.py
+import os
+import sys
+import logging
+import time
+from datetime import datetime, timedelta
+
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('/app/logs/app.log') if os.path.exists('/app/logs') else logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
+# Flask and extensions
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+
+# Other imports
+import subprocess
+import pandas as pd
+import threading
+import re
+import razorpay
+import uuid
+from sqlalchemy import text, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy.exc import SQLAlchemyError
+
+# Environment configuration
+DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+app = Flask(__name__, template_folder="templates", static_folder="static")
+
+# Secret key for session management
+app.secret_key = os.getenv("SECRET_KEY","")
+
+# Database configuration with proper error handling
+def get_database_url():
+    """Get database URL with proper error handling"""
+    database_url = os.environ.get("DATABASE_URL")
+    
+    if database_url:
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        return database_url
+    
+    # Fallback for Docker
+    db_host = os.getenv("DB_HOST", "postgres")  # Changed from "db" to "postgres"
+    db_port = os.getenv("DB_PORT", "5432")
+    db_name = os.getenv("DB_NAME", "mktrading")
+    db_user = os.getenv("DB_USER", "mktrading_user")  # Match docker-compose
+    db_password = os.getenv("DB_PASSWORD", "mktrading_secure_password_2024")
+    
+    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+    'pool_timeout': 20,
+    'connect_args': {
+        'connect_timeout': 10,
+        'options': '-c timezone=UTC'
+    }
+}
+
+
+# Initialize database
+db = SQLAlchemy()
+db.init_app(app)
+
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+
+def create_app():
+    app = Flask(__name__, template_folder="templates", static_folder="static")
+    app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
+    
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+        'pool_timeout': 20,
+        'connect_args': {'connect_timeout': 10, 'options': '-c timezone=UTC'}
+    }
+    
+    # Initialize database ONLY ONCE
+    db = SQLAlchemy(app)
+    
+    # Move all your models, routes, and functions INSIDE this function
+    # ... (all your existing code)
+    
+    return app, db  # Return both app and db
+
+# Database connection with retry logic
+def wait_for_database(max_retries=30, delay=2):
+    """Wait for database with exponential backoff"""
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                db.session.execute(text('SELECT 1'))
+                db.session.commit()
+            logger.info("Database connection successful")
+            return True
+        except Exception as e:
+            logger.warning(f"DB connection attempt {attempt + 1}/{max_retries} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(min(delay * (2 ** attempt), 30))  # Exponential backoff, max 30s
+            else:
+                logger.error("All database connection attempts failed")
+                raise e
+    return False
+def init_db():
+    """Initialize database with proper error handling"""
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            wait_for_database()
+            
+            with app.app_context():
+                db.create_all()
+                logger.info("Database tables created successfully")
+                
+                # Initialize subscription plans if they don't exist
+                if SubscriptionPlan.query.count() == 0:
+                    plans = [
+                        SubscriptionPlan(name="Basic", description="Access to news and dashboard only", 
+                                       price=5000, duration_days=30, features="News Access, Dashboard Access"),
+                        SubscriptionPlan(name="Premium Monthly", description="Complete access with priority support", 
+                                       price=10000, duration_days=30, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support"),
+                        SubscriptionPlan(name="Premium Quarterly", description="Complete access for 3 months", 
+                                       price=27000, duration_days=90, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support"),
+                        SubscriptionPlan(name="Premium Annual", description="Complete access for 12 months", 
+                                       price=100000, duration_days=365, 
+                                       features="News Access, Dashboard Access, BTC Livechart, Priority Support")
+                    ]
+                    
+                    for plan in plans:
+                        db.session.add(plan)
+                    db.session.commit()
+                    logger.info("Subscription plans initialized")
+                
+                return True
+                
+        except Exception as e:
+            logger.error(f"Database initialization attempt {attempt + 1} failed: {e}")
+            if attempt < max_attempts - 1:
+                time.sleep(5)
+            else:
+                if DEVELOPMENT_MODE:
+                    raise e
+                else:
+                    logger.warning("Database init failed, continuing in production mode")
+                    return False
+    return False
+
+# Absolute paths to scripts and data
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+SCRAPER_PATH = os.path.join(BASE_DIR, "scraper.py")
+SENTIMENT_PATH = os.path.join(BASE_DIR, "sentiment_analysis_pipeline.py")
+SENTIMENT_RESULTS = os.path.join(DATA_DIR, "sentiment_results.csv")
+
+# Database Models
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(20), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime)
+    
+    def __repr__(self):
+        return f'<User {self.email}>'
+
+class SubscriptionPlan(db.Model):
+    __tablename__ = 'subscription_plans'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    price = db.Column(db.Float, nullable=False)
+    duration_days = db.Column(db.Integer, nullable=False)
+    features = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<SubscriptionPlan {self.name}>'
+
+class UserSubscription(db.Model):
+    __tablename__ = 'user_subscriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    plan_id = db.Column(db.Integer, db.ForeignKey('subscription_plans.id'), nullable=False)
+    transaction_id = db.Column(db.String(100))
+    payment_method = db.Column(db.String(50))
+    payment_details = db.Column(db.Text)
+    start_date = db.Column(db.DateTime)
+    expiry_date = db.Column(db.DateTime)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('subscriptions', lazy=True))
+    plan = db.relationship('SubscriptionPlan', backref=db.backref('subscriptions', lazy=True))
+    
+    def __repr__(self):
+        return f'<UserSubscription {self.id}>'
+
+class PaymentTransaction(db.Model):
+    __tablename__ = 'payment_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    razorpay_order_id = db.Column(db.String(100))
+    razorpay_payment_id = db.Column(db.String(100))
+    razorpay_signature = db.Column(db.String(255))
+    amount = db.Column(db.Float)
+    currency = db.Column(db.String(10))
+    status = db.Column(db.String(20))
+    payment_method = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref=db.backref('payments', lazy=True))
+    
+    def __repr__(self):
+        return f'<PaymentTransaction {self.razorpay_payment_id}>'
+
+        
+# User authentication decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Subscription check decorator
+def subscription_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login', next=request.url))
+        
+        # Check if user has an active subscription
+        try:
+            subscription = UserSubscription.query.filter(
+                UserSubscription.user_id == session["user_id"],
+                UserSubscription.is_active == True,
+                UserSubscription.expiry_date > datetime.now()
+            ).first()
+            
+            if not subscription:
+                flash("This feature requires an active subscription. Please subscribe to access this content.", "error")
+                return redirect(url_for('subscription_menu'))
+        except Exception as e:
+            logger.error(f"Error checking subscription: {e}")
+            flash("Error checking subscription status. Please try again.", "error")
+            return redirect(url_for('subscription_menu'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Password utility functions
+def is_valid_password(password):
+    """Check if password meets complexity requirements"""
+    if len(password) < 8:
+        return False
+    if not re.search(r'[A-Z]', password):
+        return False
+    if not re.search(r'[a-z]', password):
+        return False
+    if not re.search(r'[0-9]', password):
+        return False
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False
+    return True
+
+def is_valid_email(email):
+    """Check if email has valid format"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def is_valid_phone(phone):
+    if len(phone) == 10 and phone.isdigit() and phone[0] in '6789':
+        return True
+    return False
+
+
+
+# Background task to run scraper and sentiment analysis
+def run_scraper_and_sentiment_analysis():
+    """Runs scraper and sentiment analysis every 30 minutes."""
+    # Wait for app context to be ready
+    time.sleep(30)
+    
+    while True:
+        try:
+            # Check if script files exist before running
+            if os.path.exists(SCRAPER_PATH):
+                logger.info("Running scraper...")
+                result = subprocess.run(["python", SCRAPER_PATH], 
+                                      capture_output=True, text=True, timeout=300)
+                if result.returncode != 0:
+                    logger.error(f"Scraper failed: {result.stderr}")
+            else:
+                logger.warning(f"Scraper script not found at {SCRAPER_PATH}")
+
+            if os.path.exists(SENTIMENT_PATH):
+                logger.info("Running sentiment analysis pipeline...")
+                result = subprocess.run(["python", SENTIMENT_PATH], 
+                                      capture_output=True, text=True, timeout=300)
+                if result.returncode != 0:
+                    logger.error(f"Sentiment analysis failed: {result.stderr}")
+            else:
+                logger.warning(f"Sentiment analysis script not found at {SENTIMENT_PATH}")
+
+            logger.info("Data processing cycle completed.")
+            
+        except subprocess.TimeoutExpired:
+            logger.error("Background task timed out")
+        except Exception as e:
+            logger.error(f"Error in background task: {e}")
+
+        # Wait before running again (every 30 minutes)
+        time.sleep(1800)
+
+        
+# Start background thread for data processing
+threading.Thread(target=run_scraper_and_sentiment_analysis, daemon=True).start()
+
+# Helper function to check if user has active subscription
+def check_subscription(user_id):
+    try:
+        subscription = UserSubscription.query.join(SubscriptionPlan).filter(
+            UserSubscription.user_id == user_id,
+            UserSubscription.is_active == True,
+            UserSubscription.expiry_date > datetime.now()
+        ).order_by(UserSubscription.expiry_date.desc()).first()
+        
+        if subscription:
+            return {
+                "has_subscription": True,
+                "plan_name": subscription.plan.name,
+                "expiry_date": subscription.expiry_date
+            }
+        return {"has_subscription": False}
+    except Exception as e:
+        logger.error(f"Error checking subscription: {e}")
+        return {"has_subscription": False}
+
+# Health check endpoint
+@app.route("/health")
+def health_check():
+    """Health check endpoint for Docker"""
+    try:
+        # Check database connection
+        with app.app_context():
+            db.session.execute(text('SELECT 1'))
+        return jsonify({"status": "healthy", "database": "connected",'timestamp': datetime.now().isoformat()}), 200
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({"status": "unhealthy", "error": str(e),'timestamp': datetime.now().isoformat()}), 500
+    
+@app.route('/readiness')
+def readiness_check():
+    """Readiness probe for Kubernetes/container orchestration"""
+    try:
+        # More comprehensive checks
+        db.session.execute('SELECT 1')
+        # Add other checks like external APIs, file system, etc.
+        return {"status": "ready", "timestamp": datetime.utcnow().isoformat()}, 200
+    except Exception as e:
+        return {"status": "not ready", "error": str(e)}, 503
+    
+# Routes
+@app.route('/')
+def home():
+    # Check if user is already logged in
+    if "user_id" in session:  
+        return redirect(url_for('mainpage'))  # Go directly to mainpage
+    
+    # Check if this is a new visitor or a returning visitor
+    if session.get('visited_before'):
+        # Not a first-time visitor, go to login
+        return redirect(url_for('login'))
+    else:
+        # Mark the user as having visited before
+        session['visited_before'] = True
+        # First-time visitor, go to registration
+        return redirect(url_for('register'))
+
+@app.route("/mainpage")
+@login_required
+def mainpage():
+    # Get subscription info but don't redirect if not subscribed
+    subscription_info = check_subscription(session["user_id"])
+    
+    return render_template("mainpage.html", 
+                          user_name=session.get("user_name"), 
+                          current_user=session,
+                          subscription_info=subscription_info)
+
+@app.route("/dashboard")
+@login_required
+@subscription_required
+def dashboard():
+    return render_template("dashboard.html", user_name=session.get("user_name"))
+
+# Database admin test route with better error handling
+@app.route("/test-db")
+def test_db():
+    """Test the database connection."""
+    try:
+        # Count users in database
+        user_count = User.query.count()
+        plan_count = SubscriptionPlan.query.count()
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Database connection successful!",
+            "user_count": user_count,
+            "plan_count": plan_count,
+            "database_url": app.config['SQLALCHEMY_DATABASE_URI'].split('@')[1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else "N/A"
+        })
+    except Exception as e:
+        logger.error(f"Database test failed: {e}")
+        return jsonify({
+            "status": "error", 
+            "message": str(e),
+            "database_url": app.config['SQLALCHEMY_DATABASE_URI'].split('@')[1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else "N/A"
+        }), 500
+
+# Error handlers
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Internal server error: {error}")
+    return render_template('error.html', error="Internal server error"), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', error="Page not found"), 404
+
+# Initialize database when app starts
+try:
+    init_db()
+    # Start background thread for data processing only if scripts exist
+    if os.path.exists(SCRAPER_PATH) or os.path.exists(SENTIMENT_PATH):
+        background_thread = threading.Thread(target=run_scraper_and_sentiment_analysis, daemon=True)
+        background_thread.start()
+        logger.info("Background data processing thread started")
+    else:
+        logger.warning("Background processing scripts not found, skipping background thread")
+except Exception as e:
+    logger.error(f"Failed to initialize app: {e}")
+
+
+@app.route("/subscription/checkout/<int:plan_id>")
+@login_required
+def subscription_checkout(plan_id):
+    """Handle checkout process for subscription plans"""
+    try:
+        # Get plan details
+        plan = SubscriptionPlan.query.get(plan_id)
+        
+        if not plan:
+            flash("Selected plan not found", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        plan_data = {
+            "id": plan.id,
+            "name": plan.name,
+            "description": plan.description,
+            "price": plan.price,
+            "duration_days": plan.duration_days
+        }
+        
+        # Store plan_id in session for both modes
+        session['plan_id'] = plan_id
+        
+        # Development Mode - Use test payment page
+        if DEVELOPMENT_MODE:
+            return render_template('test_payment.html',
+                                  plan=plan_data,
+                                  user_name=session.get("user_name"),
+                                  user_email=session.get("user_email"))
+        
+        # Production Mode - Use Razorpay
+        else:
+            # Create Razorpay order
+            order_amount = int(plan_data["price"] * 100)  # Convert to paise
+            order_currency = 'INR'
+            receipt_id = f"sub_{session['user_id']}_{int(time.time())}"
+            
+            order_data = {
+                'amount': order_amount,
+                'currency': order_currency,
+                'receipt': receipt_id,
+                'payment_capture': 1
+            }
+            
+            order = razorpay_client.order.create(data=order_data)
+            session['razorpay_order_id'] = order['id']
+            
+            return render_template('payment.html',
+                                  plan=plan_data,
+                                  razorpay_key_id=RAZORPAY_KEY_ID,
+                                  order_id=order['id'],
+                                  amount=order_amount,
+                                  currency=order_currency,
+                                  user_name=session.get("user_name"),
+                                  user_email=session.get("user_email"))
+    
+    except Exception as e:
+        print(f"Error in checkout: {str(e)}")
+        flash(f"There was a problem processing your request. Please try again.", "error")
+        return redirect(url_for("subscription_plans"))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and check_password_hash(user.password_hash, password):
+            session["user_id"] = user.id
+            session["user_name"] = user.name
+            session["user_email"] = email
+            
+            # Update last login time
+            user.last_login = datetime.now()
+            db.session.commit()
+            
+            # Check if user has subscription
+            subscription_info = check_subscription(user.id)
+            if not subscription_info["has_subscription"]:
+                flash("Welcome back! Please subscribe to access our premium features", "info")
+                return redirect(url_for("subscription_menu"))
+            
+            # Redirect to dashboard
+            next_page = request.args.get('next')
+            if next_page and next_page.startswith('/'):
+                return redirect(next_page)
+            return redirect(url_for("mainpage"))
+        else:
+            flash("Invalid email or password", "error")
+    
+    return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    # Check if user is already logged in
+    if "user_id" in session:
+        return redirect(url_for('mainpage'))
+        
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        confirm_password = request.form.get("confirm_password")
+        username = request.form.get("username")
+        phone = request.form.get("phone")
+        
+        # Validate input
+        if not all([email, phone, password, confirm_password, username]):
+            flash("All fields are required", "error")
+            return render_template("register.html")
+            
+        if not is_valid_phone(phone):
+            flash("Please Enter Valid Phone Number")
+            return render_template("register.html")
+        
+        if not is_valid_email(email):
+            flash("Invalid email format", "error")
+            return render_template("register.html")
+        
+        if password != confirm_password:
+            flash("Passwords do not match", "error")
+            return render_template("register.html")
+        
+        if not is_valid_password(password):
+            flash("Password should be at least 8 characters with at least 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character", "error")
+            return render_template("register.html")
+        
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        
+        if existing_user:
+            flash("Email already registered", "error")
+            return render_template("register.html")
+        
+        # Create new user
+        password_hash = generate_password_hash(password)
+        new_user = User(
+            email=email,
+            phone=phone,
+            password_hash=password_hash,
+            name=username,
+            created_at=datetime.now()
+        )
+        
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Log in the user and redirect to subscription page
+            session["user_id"] = new_user.id
+            session["user_name"] = username
+            session["user_email"] = email
+            
+            flash("Registration successful! Please subscribe to access our premium features.", "success")
+            return redirect(url_for("subscription_menu"))
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f"Registration failed: {str(e)}", "error")
+            return render_template("register.html")
+    
+    return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("user_id", None)
+    session.pop("user_name", None)
+    session.pop("user_email", None)
+    flash("You have been logged out", "info")
+    return redirect(url_for("login"))
+
+@app.route("/subscription/menu")
+@login_required
+def subscription_menu():
+    """Renders the subscription menu page."""
+    # Get subscription info
+    subscription_info = check_subscription(session["user_id"])
+    
+    # Get available plans
+    plans = SubscriptionPlan.query.all()
+    
+    formatted_plans = []
+    for plan in plans:
+        plan_features = plan.features.split(',') if plan.features else []
+        formatted_plans.append({
+            "id": plan.id,
+            "name": plan.name,
+            "description": plan.description,
+            "price": plan.price,
+            "duration_days": plan.duration_days,
+            "features": plan_features
+        })
+    
+    return render_template("subscription_menu.html", 
+                          plans=formatted_plans,
+                          subscription_info=subscription_info,
+                          user_name=session.get("user_name"))
+
+@app.route("/profile")
+@login_required
+def profile():
+    user = User.query.get(session["user_id"])
+    
+    if not user:
+        flash("User not found", "error")
+        return redirect(url_for("login"))
+    
+    # Get subscription info
+    subscription = UserSubscription.query.join(SubscriptionPlan).filter(
+        UserSubscription.user_id == session["user_id"],
+        UserSubscription.is_active == True,
+        UserSubscription.expiry_date > datetime.now()
+    ).order_by(UserSubscription.expiry_date.desc()).first()
+    
+    user_data = {
+        "email": user.email,
+        "name": user.name,
+        "created_at": user.created_at,
+        "last_login": user.last_login,
+        "has_subscription": subscription is not None
+    }
+    
+    if subscription:
+        user_data["subscription"] = {
+            "plan_name": subscription.plan.name,
+            "start_date": subscription.start_date,
+            "expiry_date": subscription.expiry_date
+        }
+    
+    return render_template("profile.html", user_data=user_data)
+
+@app.route("/reset_password", methods=["GET", "POST"])
+@login_required
+def reset_password():
+    if request.method == "POST":
+        current_password = request.form.get("current_password")
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
+        
+        # Validate input
+        if not all([current_password, new_password, confirm_password]):
+            flash("All fields are required", "error")
+            return render_template("reset_password.html")
+        
+        if new_password != confirm_password:
+            flash("New passwords do not match", "error")
+            return render_template("reset_password.html")
+        
+        if not is_valid_password(new_password):
+            flash("Password should be at least 8 characters with at least 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character", "error")
+            return render_template("reset_password.html")
+        
+        # Verify current password
+        user = User.query.get(session["user_id"])
+        
+        if not check_password_hash(user.password_hash, current_password):
+            flash("Current password is incorrect", "error")
+            return render_template("reset_password.html")
+        
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+        db.session.commit()
+        
+        flash("Password updated successfully", "success")
+        return redirect(url_for("profile"))
+    
+    return render_template("reset_password.html")
+
+@app.route("/settings")
+@login_required
+def settings():
+    user = User.query.get(session["user_id"])
+    
+    if not user:
+        flash("User not found", "error")
+        return redirect(url_for("login"))
+    
+    user_data = {
+        "email": user.email,
+        "name": user.name
+    }
+    
+    return render_template("settings.html", user=user_data)
+
+@app.route("/update_settings", methods=["POST"])
+@login_required
+def update_settings():
+    new_name = request.form.get("name")
+    email = request.form.get("email")
+    
+    if not new_name or not email:
+        flash("Name and email are required", "error")
+        return redirect(url_for("settings"))
+    
+    if not is_valid_email(email):
+        flash("Invalid email format", "error")
+        return redirect(url_for("settings"))
+    
+    # Check if email already exists (for other users)
+    existing_user = User.query.filter(User.email == email, User.id != session["user_id"]).first()
+    
+    if existing_user:
+        flash("Email already in use by another account", "error")
+        return redirect(url_for("settings"))
+    
+    # Update user info
+    user = User.query.get(session["user_id"])
+    user.name = new_name
+    user.email = email
+    db.session.commit()
+    
+    # Update session
+    session["user_name"] = new_name
+    session["user_email"] = email
+    
+    flash("Settings updated successfully", "success")
+    return redirect(url_for("settings"))
+
+@app.route("/subscription/plans")
+@login_required
+def subscription_plans():
+    plans = SubscriptionPlan.query.all()
+    
+    # Check if user already has an active subscription
+    active_subscription = UserSubscription.query.join(SubscriptionPlan).filter(
+        UserSubscription.user_id == session["user_id"],
+        UserSubscription.is_active == True,
+        UserSubscription.expiry_date > datetime.now()
+    ).first()
+    
+    formatted_plans = []
+    for plan in plans:
+        plan_features = plan.features.split(',') if plan.features else []
+        formatted_plans.append({
+            "id": plan.id,
+            "name": plan.name,
+            "description": plan.description,
+            "price": plan.price,
+            "duration_days": plan.duration_days,
+            "features": plan_features
+        })
+    
+    active_sub_data = None
+    if active_subscription:
+        active_sub_data = (
+            active_subscription.plan_id,
+            active_subscription.plan.name,
+            active_subscription.expiry_date.strftime('%Y-%m-%d')
+        )
+    
+    return render_template("subscription_plans.html", 
+                          plans=formatted_plans, 
+                          active_subscription=active_sub_data,
+                          user_name=session.get("user_name"))
+
+@app.route("/subscription/test_payment", methods=["POST"])
+@login_required
+def test_payment():
+    """Process test payments (development mode only)"""
+    if not DEVELOPMENT_MODE:
+        return redirect(url_for("subscription_plans"))
+    
+    try:
+        # Get plan details
+        plan_id = session.get('plan_id')
+        if not plan_id:
+            flash("Plan information not found. Please try again.", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        plan = SubscriptionPlan.query.get(plan_id)
+        if not plan:
+            flash("Plan not found. Please try again.", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        # Generate mock payment details
+        mock_payment_id = f"test_{uuid.uuid4().hex[:10]}"
+        mock_order_id = f"order_{uuid.uuid4().hex[:10]}"
+        
+        # Record payment transaction
+        payment = PaymentTransaction(
+            user_id=session["user_id"],
+            razorpay_order_id=mock_order_id,
+            razorpay_payment_id=mock_payment_id,
+            razorpay_signature="test_signature",
+            amount=plan.price,
+            currency="INR",
+            status="captured",
+            payment_method="test_payment"
+        )
+        db.session.add(payment)
+        
+        # Deactivate existing subscriptions
+        existing_subs = UserSubscription.query.filter_by(
+            user_id=session["user_id"],
+            is_active=True
+        ).all()
+        
+        for sub in existing_subs:
+            sub.is_active = False
+        
+        # Calculate subscription dates
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=plan.duration_days)
+        
+        # Create new subscription
+        subscription = UserSubscription(
+            user_id=session["user_id"],
+            plan_id=plan_id,
+            transaction_id=mock_payment_id,
+            payment_method="test_payment",
+            start_date=start_date,
+            expiry_date=expiry_date,
+            is_active=True
+        )
+        db.session.add(subscription)
+        db.session.commit()
+        
+        # Clear session data
+        session.pop('plan_id', None)
+        
+        flash("Test payment successful! Your subscription is now active.", "success")
+        return redirect(url_for("payment_success"))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error in test payment: {str(e)}")
+        flash("An error occurred during the test payment. Please try again.", "error")
+        return redirect(url_for("subscription_plans"))
+
+@app.route("/subscription/process_payment", methods=["POST"])
+@login_required
+def process_payment():
+    try:
+        # Get payment details from the form
+        razorpay_payment_id = request.form.get('razorpay_payment_id')
+        razorpay_order_id = request.form.get('razorpay_order_id')
+        razorpay_signature = request.form.get('razorpay_signature')
+        
+        # Verify payment signature
+        params_dict = {
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        }
+        
+        # Verify the payment signature
+        razorpay_client.utility.verify_payment_signature(params_dict)
+        
+        # Get payment details from Razorpay
+        payment = razorpay_client.payment.fetch(razorpay_payment_id)
+        
+        # Get plan details
+        plan_id = session.get('plan_id')
+        if not plan_id:
+            flash("Plan information not found. Please try again.", "error")
+            return redirect(url_for("subscription_plans"))
+        
+        plan = SubscriptionPlan.query.get(plan_id)
+        
+        # Record payment in database
+        payment_record = PaymentTransaction(
+            user_id=session["user_id"],
+            razorpay_order_id=razorpay_order_id,
+            razorpay_payment_id=razorpay_payment_id,
+            razorpay_signature=razorpay_signature,
+            amount=payment['amount'] / 100,  # Convert paise to rupees
+            currency=payment['currency'],
+            status=payment['status'],
+            payment_method=payment.get('method', 'unknown')
+        )
+        db.session.add(payment_record)
+        
+        # Deactivate existing active subscriptions
+        existing_subs = UserSubscription.query.filter_by(
+            user_id=session["user_id"],
+            is_active=True
+        ).all()
+        
+        for sub in existing_subs:
+            sub.is_active = False
+        
+        # Calculate subscription start and end dates
+        start_date = datetime.now()
+        expiry_date = start_date + timedelta(days=plan.duration_days)
+        
+        # Create new subscription
+        subscription = UserSubscription(
+            user_id=session["user_id"],
+            plan_id=plan_id,
+            transaction_id=razorpay_payment_id,
+            payment_method=payment.get('method', 'unknown'),
+            start_date=start_date,
+            expiry_date=expiry_date,
+            is_active=True
+        )
+        db.session.add(subscription)
+        db.session.commit()
+        
+        # Clear the session variables
+        session.pop('razorpay_order_id', None)
+        session.pop('plan_id', None)
+        
+        flash("Payment successful! Your subscription is now active.", "success")
+        return redirect(url_for("payment_success"))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Payment verification failed: {str(e)}", "error")
+        return redirect(url_for("payment_failure"))
+
+@app.route("/subscription/payment/success")
+@login_required
+def payment_success():
+    # Get the user's active subscription details
+    subscription = UserSubscription.query.join(SubscriptionPlan).filter(
+        UserSubscription.user_id == session["user_id"],
+        UserSubscription.is_active == True
+    ).order_by(UserSubscription.created_at.desc()).first()
+    
+    if not subscription:
+        return redirect(url_for("subscription_plans"))
+    
+    subscription_data = {
+        "plan_name": subscription.plan.name,
+        "expiry_date": subscription.expiry_date.strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
+    return render_template("payment_success.html", 
+                          subscription=subscription_data,
+                          user_name=session.get("user_name"))
+
+@app.route("/subscription/payment/failure")
+@login_required
+def payment_failure():
+    return render_template("payment_failure.html", user_name=session.get("user_name"))
+
+@app.route("/subscription/history")
+@login_required
+def subscription_history():
+    subscriptions = UserSubscription.query.join(SubscriptionPlan).filter(
+        UserSubscription.user_id == session["user_id"]
+    ).order_by(UserSubscription.created_at.desc()).all()
+    
+    subscription_history = []
+    for sub in subscriptions:
+        subscription_history.append({
+            "plan_name": sub.plan.name,
+            "start_date": sub.start_date.strftime('%Y-%m-%d %H:%M:%S'),
+            "expiry_date": sub.expiry_date.strftime('%Y-%m-%d %H:%M:%S'),
+            "is_active": sub.is_active,
+            "transaction_id": sub.transaction_id,
+            "payment_method": sub.payment_method
+        })
+    
+    return render_template("subscription_history.html", 
+                          subscriptions=subscription_history,
+                          user_name=session.get("user_name"))
+
+# Trading livechart route (now protected by subscription)
+@app.route("/TradingLivechart-Development.html")
+@login_required
+@subscription_required
+def trading_livechart():
+    """Renders the trading livechart."""
+    return render_template("TradingLivechart-Development.html")
+
+@app.route("/faq")
+@login_required
+def faq():
+    """Renders the FAQ page."""
+    return render_template("faq.html")
+
+@app.route("/policy")
+@login_required
+def policy():
+    """Renders the privacy policy page."""
+    return render_template("privacypolicy.html")
+
+# Stock news impact dashboard route (protected by subscription)
+@app.route("/StockNewsImpact.html")
+@login_required
+@subscription_required
+def stock_news_impact():
+    """Renders the stock news impact dashboard."""
+    return render_template("StockNewsImpact.html")
+
+# API endpoint for news data (protected by subscription)
+@app.route("/api/news")
+@login_required
+@subscription_required
+def get_news():
+    """Returns the latest news from sentiment_results.csv."""
+    if not os.path.exists(SENTIMENT_RESULTS):
+        return jsonify({"error": "Sentiment results file not found"}), 500
+
+    df = pd.read_csv(SENTIMENT_RESULTS).fillna("")
+    news_data = df.to_dict(orient="records")
+
+    return jsonify({"news": news_data})
+
+
+# Serve static files
+@app.route("/static/<path:path>")
+def serve_static(path):
+    return send_from_directory("static", path)
+
+# Database migration utility route (protected, only for admins)
+@app.route("/admin/migrate-db")
+@login_required
+def migrate_db():
+    """Migrate the database schema (only for development)."""
+    if session.get("user_id") != 1:  # Assuming admin has ID 1
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    try:
+        with app.app_context():
+            db.create_all()
+        return jsonify({"status": "success", "message": "Database schema updated"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
+def create_application():
+    app, db = create_app()
+    
+    # Initialize database
+    with app.app_context():
+        try:
+            init_db()  # Call your init_db function here
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+    
+    return app
+
+# For gunicorn
+application = create_application()
+
+if __name__ == "__main__":
+    app = create_application()
+    app.run(debug=DEVELOPMENT_MODE, host="0.0.0.0", port=5000)
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    docker-compose.yaml
+
+    version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13-alpine
+    container_name: mktrading_postgres
+    environment:
+      POSTGRES_DB: mktrading
+      POSTGRES_USER: mktrading_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mktrading_secure_password_2024}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mktrading_user -d mktrading"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mktrading_network
+
+  web:
+    image: tejask0512/mktrading-website:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: mktrading_web
+    environment:
+      - DATABASE_URL=postgresql://mktrading_user:${DB_PASSWORD:-mktrading_secure_password_2024}@postgres:5432/mktrading
+      - DB_HOST=postgres
+      - DB_USER=mktrading_user
+      - DB_PASSWORD=${DB_PASSWORD:-mktrading_secure_password_2024}
+      - SECRET_KEY=${SECRET_KEY:-your-super-secret-key-change-this}
+      - DEVELOPMENT_MODE=${DEVELOPMENT_MODE:-false}
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - mktrading_network
+
+volumes:
+  postgres_data:
+
+networks:
+  mktrading_network:
+    driver: bridge
+    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    dockerfile
+
+    FROM python:3.9-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
+ENV PIP_NO_CACHE_DIR=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    postgresql-client \
+    libpq-dev \
+    curl \
+    wget \
+    git \
+    python3-dev \
+    libblas-dev \
+    liblapack-dev \
+    gfortran \
+    pkg-config \
+    libhdf5-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Download NLTK data
+RUN python -c "import nltk; \
+    nltk.download('punkt', quiet=True); \
+    nltk.download('vader_lexicon', quiet=True); \
+    nltk.download('stopwords', quiet=True); \
+    nltk.download('wordnet', quiet=True)" || true
+
+# Create directories with proper permissions
+RUN mkdir -p /app/logs /app/data /app/models /app/static /app/templates /app/backups && \
+    chmod 755 /app/logs /app/data /app/models /app/backups
+
+# Copy application code
+COPY . .
+
+# Create non-root user and set permissions
+RUN groupadd -r mktrading && \
+    useradd -r -g mktrading -d /app -s /bin/bash mktrading && \
+    chown -R mktrading:mktrading /app && \
+    chmod +x /app
+
+# Switch to non-root user
+USER mktrading
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Start application
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "--worker-class", "sync", "--max-requests", "1000", "--max-requests-jitter", "100", "app:application"]
