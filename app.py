@@ -18,8 +18,27 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from config.database import db
-
+from sqlalchemy.exc import SQLAlchemyError
+# Add these imports if missing
+from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, ForeignKey, Text
+from sqlalchemy.sql import func
+from sqlalchemy import text  # if you're using raw SQL queries
+import logging
+import sys
 load_dotenv() 
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('/app/logs/app.log') if os.path.exists('/app/logs') else logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+
 
 # Environment configuration
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "true").lower() == "true"
@@ -29,12 +48,44 @@ RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Secret key for session management
-app.secret_key = "Tejas@0514"
+app.secret_key = os.getenv("SECRET_KEY")
+
+# Database configuration with proper error handling
+def get_database_url():
+    """Get database URL with fallback options"""
+    database_url = os.environ.get("DATABASE_URL")
+    
+    if database_url:
+        # Handle postgres:// vs postgresql:// URL schemes
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        return database_url
+    
+    # Fallback configuration for Docker environment
+    db_host = os.getenv("DB_HOST", "db")
+    db_port = os.getenv("DB_PORT", "5432")
+    db_name = os.getenv("DB_NAME", "mktrading")
+    db_user = os.getenv("DB_USER", "postgres")
+    db_password = os.getenv("DB_PASSWORD", "postgres")
+    
+    return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+
 
 # PostgreSQL Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@db:5432/mktrading")
+app.config['SQLALCHEMY_DATABASE_URI'] = get_database_url()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+    'connect_args': {
+        'connect_timeout': 30,
+        'options': '-c timezone=UTC'
+    }
+}
+
+# Initialize SQLAlchemy
+db = SQLAlchemy()
+db.init_app(app)
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
@@ -111,6 +162,87 @@ class PaymentTransaction(db.Model):
     def __repr__(self):
         return f'<PaymentTransaction {self.razorpay_payment_id}>'
 
+# Database connection with retry logic
+def wait_for_database(max_retries=30, delay=2):
+    """Wait for database to be ready with retry logic"""
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                # Try to execute a simple query
+                db.session.execute(text('SELECT 1'))
+                db.session.commit()
+            logger.info("Database connection established successfully")
+            return True
+        except Exception as e:
+            logger.warning(f"Database connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                time.sleep(delay)
+            else:
+                logger.error("Failed to connect to database after all retries")
+                raise e
+    return False
+
+def init_db():
+    """Initialize database with proper error handling and retry logic"""
+    try:
+        # Wait for database to be ready
+        wait_for_database()
+        
+        with app.app_context():
+            # Create all tables
+            db.create_all()
+            logger.info("Database tables created successfully")
+            
+            # Check if subscription plans exist
+            if SubscriptionPlan.query.count() == 0:
+                # Add subscription plans
+                plans = [
+                    SubscriptionPlan(
+                        name="Basic",
+                        description="Access to news and dashboard only",
+                        price=5000,
+                        duration_days=30,
+                        features="News Access, Dashboard Access"
+                    ),
+                    SubscriptionPlan(
+                        name="Premium Monthly",
+                        description="Complete access with priority support",
+                        price=10000,
+                        duration_days=30,
+                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
+                    ),
+                    SubscriptionPlan(
+                        name="Premium Quarterly",
+                        description="Complete access with priority support for 3 months",
+                        price=27000,
+                        duration_days=90,
+                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
+                    ),
+                    SubscriptionPlan(
+                        name="Premium Annual",
+                        description="Complete access with priority support for 12 months",
+                        price=100000,
+                        duration_days=365,
+                        features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
+                    )
+                ]
+                
+                for plan in plans:
+                    db.session.add(plan)
+                
+                db.session.commit()
+                logger.info("Database initialized with subscription plans")
+            else:
+                logger.info("Subscription plans already exist")
+                
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        # Don't raise the exception in production to allow the app to start
+        if not DEVELOPMENT_MODE:
+            logger.warning("Database initialization failed, but continuing in production mode")
+        else:
+            raise e
+        
 # User authentication decorator
 def login_required(f):
     @wraps(f)
@@ -128,14 +260,19 @@ def subscription_required(f):
             return redirect(url_for('login', next=request.url))
         
         # Check if user has an active subscription
-        subscription = UserSubscription.query.filter(
-            UserSubscription.user_id == session["user_id"],
-            UserSubscription.is_active == True,
-            UserSubscription.expiry_date > datetime.now()
-        ).first()
-        
-        if not subscription:
-            flash("This feature requires an active subscription. Please subscribe to access this content.", "error")
+        try:
+            subscription = UserSubscription.query.filter(
+                UserSubscription.user_id == session["user_id"],
+                UserSubscription.is_active == True,
+                UserSubscription.expiry_date > datetime.now()
+            ).first()
+            
+            if not subscription:
+                flash("This feature requires an active subscription. Please subscribe to access this content.", "error")
+                return redirect(url_for('subscription_menu'))
+        except Exception as e:
+            logger.error(f"Error checking subscription: {e}")
+            flash("Error checking subscription status. Please try again.", "error")
             return redirect(url_for('subscription_menu'))
         
         return f(*args, **kwargs)
@@ -162,94 +299,167 @@ def is_valid_email(email):
     return re.match(pattern, email) is not None
 
 def is_valid_phone(phone):
-    if len(phone) == 10:
+    if len(phone) == 10 and phone.isdigit() and phone[0] in '6789':
         return True
     return False
 
-# Initialize database
-def init_db():
-    db.create_all()
-    
-    # Check if subscription plans exist
-    if SubscriptionPlan.query.count() == 0:
-        # Add new subscription plans
-        plans = [
-            SubscriptionPlan(
-                name="Basic",
-                description="Access to news and dashboard only",
-                price=5000,
-                duration_days=30,
-                features="News Access, Dashboard Access"
-            ),
-            SubscriptionPlan(
-                name="Premium Monthly",
-                description="Complete access with priority support",
-                price=10000,
-                duration_days=30,
-                features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-            ),
-            SubscriptionPlan(
-                name="Premium Quarterly",
-                description="Complete access with priority support for 3 months",
-                price=27000,
-                duration_days=90,
-                features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-            ),
-            SubscriptionPlan(
-                name="Premium Annual",
-                description="Complete access with priority support for 12 months",
-                price=100000,
-                duration_days=365,
-                features="News Access, Dashboard Access, BTC Livechart, Priority Support, Premium Updates"
-            )
-        ]
-        
-        for plan in plans:
-            db.session.add(plan)
-        
-        db.session.commit()
-        print("Database initialized with subscription plans")
 
-# Initialize database on startup
-with app.app_context():
-    init_db()
 
 # Background task to run scraper and sentiment analysis
 def run_scraper_and_sentiment_analysis():
     """Runs scraper and sentiment analysis every 30 minutes."""
+    # Wait for app context to be ready
+    time.sleep(30)
+    
     while True:
         try:
-            print("Running scraper...")
-            subprocess.run(["python", SCRAPER_PATH], check=True)
+            # Check if script files exist before running
+            if os.path.exists(SCRAPER_PATH):
+                logger.info("Running scraper...")
+                result = subprocess.run(["python", SCRAPER_PATH], 
+                                      capture_output=True, text=True, timeout=300)
+                if result.returncode != 0:
+                    logger.error(f"Scraper failed: {result.stderr}")
+            else:
+                logger.warning(f"Scraper script not found at {SCRAPER_PATH}")
 
-            print("Running sentiment analysis pipeline...")
-            subprocess.run(["python", SENTIMENT_PATH], check=True)
+            if os.path.exists(SENTIMENT_PATH):
+                logger.info("Running sentiment analysis pipeline...")
+                result = subprocess.run(["python", SENTIMENT_PATH], 
+                                      capture_output=True, text=True, timeout=300)
+                if result.returncode != 0:
+                    logger.error(f"Sentiment analysis failed: {result.stderr}")
+            else:
+                logger.warning(f"Sentiment analysis script not found at {SENTIMENT_PATH}")
 
-            print("Data updated successfully.")
+            logger.info("Data processing cycle completed.")
+            
+        except subprocess.TimeoutExpired:
+            logger.error("Background task timed out")
         except Exception as e:
-            print(f"Error updating data: {e}")
+            logger.error(f"Error in background task: {e}")
 
         # Wait before running again (every 30 minutes)
         time.sleep(1800)
 
+        
 # Start background thread for data processing
 threading.Thread(target=run_scraper_and_sentiment_analysis, daemon=True).start()
 
 # Helper function to check if user has active subscription
 def check_subscription(user_id):
-    subscription = UserSubscription.query.join(SubscriptionPlan).filter(
-        UserSubscription.user_id == user_id,
-        UserSubscription.is_active == True,
-        UserSubscription.expiry_date > datetime.now()
-    ).order_by(UserSubscription.expiry_date.desc()).first()
+    try:
+        subscription = UserSubscription.query.join(SubscriptionPlan).filter(
+            UserSubscription.user_id == user_id,
+            UserSubscription.is_active == True,
+            UserSubscription.expiry_date > datetime.now()
+        ).order_by(UserSubscription.expiry_date.desc()).first()
+        
+        if subscription:
+            return {
+                "has_subscription": True,
+                "plan_name": subscription.plan.name,
+                "expiry_date": subscription.expiry_date
+            }
+        return {"has_subscription": False}
+    except Exception as e:
+        logger.error(f"Error checking subscription: {e}")
+        return {"has_subscription": False}
+
+# Health check endpoint
+@app.route("/health")
+def health_check():
+    """Health check endpoint for Docker"""
+    try:
+        # Check database connection
+        with app.app_context():
+            db.session.execute(text('SELECT 1'))
+        return jsonify({"status": "healthy", "database": "connected",'timestamp': datetime.now().isoformat()}), 200
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({"status": "unhealthy", "error": str(e),'timestamp': datetime.now().isoformat()}), 500
+
+# Routes
+@app.route('/')
+def home():
+    # Check if user is already logged in
+    if "user_id" in session:  
+        return redirect(url_for('mainpage'))  # Go directly to mainpage
     
-    if subscription:
-        return {
-            "has_subscription": True,
-            "plan_name": subscription.plan.name,
-            "expiry_date": subscription.expiry_date
-        }
-    return {"has_subscription": False}
+    # Check if this is a new visitor or a returning visitor
+    if session.get('visited_before'):
+        # Not a first-time visitor, go to login
+        return redirect(url_for('login'))
+    else:
+        # Mark the user as having visited before
+        session['visited_before'] = True
+        # First-time visitor, go to registration
+        return redirect(url_for('register'))
+
+@app.route("/mainpage")
+@login_required
+def mainpage():
+    # Get subscription info but don't redirect if not subscribed
+    subscription_info = check_subscription(session["user_id"])
+    
+    return render_template("mainpage.html", 
+                          user_name=session.get("user_name"), 
+                          current_user=session,
+                          subscription_info=subscription_info)
+
+@app.route("/dashboard")
+@login_required
+@subscription_required
+def dashboard():
+    return render_template("dashboard.html", user_name=session.get("user_name"))
+
+# Database admin test route with better error handling
+@app.route("/test-db")
+def test_db():
+    """Test the database connection."""
+    try:
+        # Count users in database
+        user_count = User.query.count()
+        plan_count = SubscriptionPlan.query.count()
+        
+        return jsonify({
+            "status": "success", 
+            "message": "Database connection successful!",
+            "user_count": user_count,
+            "plan_count": plan_count,
+            "database_url": app.config['SQLALCHEMY_DATABASE_URI'].split('@')[1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else "N/A"
+        })
+    except Exception as e:
+        logger.error(f"Database test failed: {e}")
+        return jsonify({
+            "status": "error", 
+            "message": str(e),
+            "database_url": app.config['SQLALCHEMY_DATABASE_URI'].split('@')[1] if '@' in app.config['SQLALCHEMY_DATABASE_URI'] else "N/A"
+        }), 500
+
+# Error handlers
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f"Internal server error: {error}")
+    return render_template('error.html', error="Internal server error"), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('error.html', error="Page not found"), 404
+
+# Initialize database when app starts
+try:
+    init_db()
+    # Start background thread for data processing only if scripts exist
+    if os.path.exists(SCRAPER_PATH) or os.path.exists(SENTIMENT_PATH):
+        background_thread = threading.Thread(target=run_scraper_and_sentiment_analysis, daemon=True)
+        background_thread.start()
+        logger.info("Background data processing thread started")
+    else:
+        logger.warning("Background processing scripts not found, skipping background thread")
+except Exception as e:
+    logger.error(f"Failed to initialize app: {e}")
+
 
 @app.route("/subscription/checkout/<int:plan_id>")
 @login_required
@@ -312,39 +522,6 @@ def subscription_checkout(plan_id):
         flash(f"There was a problem processing your request. Please try again.", "error")
         return redirect(url_for("subscription_plans"))
 
-# Routes
-@app.route('/')
-def home():
-    # Check if user is already logged in
-    if "user_id" in session:  
-        return redirect(url_for('mainpage'))  # Go directly to mainpage
-    
-    # Check if this is a new visitor or a returning visitor
-    if session.get('visited_before'):
-        # Not a first-time visitor, go to login
-        return redirect(url_for('login'))
-    else:
-        # Mark the user as having visited before
-        session['visited_before'] = True
-        # First-time visitor, go to registration
-        return redirect(url_for('register'))
-
-@app.route("/mainpage")
-@login_required
-def mainpage():
-    # Get subscription info but don't redirect if not subscribed
-    subscription_info = check_subscription(session["user_id"])
-    
-    return render_template("mainpage.html", 
-                          user_name=session.get("user_name"), 
-                          current_user=session,
-                          subscription_info=subscription_info)
-
-@app.route("/dashboard")
-@login_required
-@subscription_required
-def dashboard():
-    return render_template("dashboard.html", user_name=session.get("user_name"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -885,23 +1062,6 @@ def get_news():
 
     return jsonify({"news": news_data})
 
-# Database admin test route
-@app.route("/test-db")
-def test_db():
-    """Test the database connection."""
-    try:
-        # Count users in database
-        user_count = User.query.count()
-        plan_count = SubscriptionPlan.query.count()
-        
-        return jsonify({
-            "status": "success", 
-            "message": "Database connection successful!",
-            "user_count": user_count,
-            "plan_count": plan_count
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 # Serve static files
 @app.route("/static/<path:path>")
